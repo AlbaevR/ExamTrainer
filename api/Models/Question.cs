@@ -1,20 +1,11 @@
-﻿namespace api.Models;
+﻿using api.Models;
 
-public partial class Question
+public class Question
 {
     public int Id { get; set; }
-
     public int SubjectId { get; set; }
+    public Subject Subject { get; set; } = null!;
 
-    public string Text { get; set; } = null!;
-
-    public string CorrectAnswer { get; set; } = null!;
-
-    public string IncorrectAnswer1 { get; set; } = null!;
-
-    public string IncorrectAnswer2 { get; set; } = null!;
-
-    public string IncorrectAnswer3 { get; set; } = null!;
-
-    public virtual Subject Subject { get; set; } = null!;
+    public ICollection<QuestionTranslation> Translations { get; set; } = new List<QuestionTranslation>();
+    public ICollection<AnswerOption> AnswerOptions { get; set; } = new List<AnswerOption>();
 }

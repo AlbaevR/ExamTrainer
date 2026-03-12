@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using api.Data;
+using api.DTOs.Exams;
+using api.Mappers;
 using api.Models;
-using api.DTOs.Exam;
-using api.DTOs.Question;
-
 
 namespace api.Controllers;
 
@@ -18,28 +18,61 @@ public class ExamController : ControllerBase
         _context = context;
     }
 
+    // GET /api/exam/start/{subjectId}?lang=ru
+    [HttpGet("start/{subjectId}")]
+    public IActionResult StartExam(int subjectId, [FromQuery] string? lang)
+    {
+        var subject = _context.Subjects
+            .Include(s => s.Translations)
+            .FirstOrDefault(s => s.Id == subjectId);
+
+        if (subject == null)
+            return NotFound("Subject not found.");
+
+        var language = lang ?? string.Empty;
+
+        var questions = _context.Questions
+            .Where(q => q.SubjectId == subjectId)
+            .Include(q => q.Translations)
+            .Include(q => q.AnswerOptions).ThenInclude(a => a.Translations)
+            .OrderBy(q => Guid.NewGuid())
+            .Take(30)
+            .ToList();
+
+        var questionDtos = questions.Select(q => q.ToLocalizedQuestionResponseDto(language)).ToList();
+
+        var result = new ExamStartDto
+        {
+            SubjectId = subject.Id,
+            SubjectName = subject.Translations.FirstOrDefault(t => t.LanguageCode == language)?.Name
+                ?? subject.Translations.FirstOrDefault()?.Name ?? string.Empty,
+            Questions = questionDtos
+        };
+
+        return Ok(result);
+    }
+
+    // POST /api/exam/submit
     [HttpPost("submit")]
     public IActionResult SubmitExam([FromBody] SubmitExamRequestDto request)
     {
-        if (request.Answers == null || request.Answers.Count == 0)
+        if (request == null || request.Answers == null || request.Answers.Count == 0)
             return BadRequest("No answers submitted.");
 
         var questionIds = request.Answers.Select(a => a.QuestionId).ToList();
 
-        var questions = _context.Questions
-            .Where(q => questionIds.Contains(q.Id))
-            .ToList();
+        var answerOptionIds = request.Answers.Select(a => a.SelectedAnswerOptionId).ToList();
 
-        if (questions.Any(q => q.SubjectId != request.SubjectId))
-            return BadRequest("Some questions do not belong to the selected subject.");
+        var options = _context.AnswerOptions
+            .Where(o => answerOptionIds.Contains(o.Id))
+            .ToList();
 
         int score = 0;
 
         foreach (var submitted in request.Answers)
         {
-            var question = questions.FirstOrDefault(q => q.Id == submitted.QuestionId);
-
-            if (question != null && question.CorrectAnswer == submitted.SelectedAnswer)
+            var option = options.FirstOrDefault(o => o.Id == submitted.SelectedAnswerOptionId);
+            if (option != null && option.IsCorrect)
             {
                 score++;
             }
@@ -61,53 +94,6 @@ public class ExamController : ControllerBase
             Score = score,
             TotalQuestions = request.Answers.Count,
             Percentage = Math.Round((double)score / request.Answers.Count * 100, 2)
-        };
-
-        return Ok(result);
-    }
-
-    [HttpGet("start/{subjectId}")]
-    public IActionResult StartExam(int subjectId)
-    {
-        var subject = _context.Subjects.FirstOrDefault(s => s.Id == subjectId);
-
-        if (subject == null)
-            return NotFound("Subject not found.");
-
-        var questions = _context.Questions
-            .Where(q => q.SubjectId == subjectId)
-            .OrderBy(q => Guid.NewGuid())
-            .Take(30)
-            .ToList();
-
-        //if (questions.Count < 30)
-        //    return BadRequest("Not enough questions for this subject.");
-
-        var questionDtos = questions.Select(q =>
-        {
-            var answers = new List<string>
-            {
-                q.CorrectAnswer,
-                q.IncorrectAnswer1,
-                q.IncorrectAnswer2,
-                q.IncorrectAnswer3
-            }
-            .OrderBy(a => Guid.NewGuid())
-            .ToList();
-
-            return new QuestionResponseDto
-            {
-                Id = q.Id,
-                Text = q.Text,
-                Answers = answers
-            };
-        }).ToList();
-
-        var result = new ExamStartDto
-        {
-            SubjectId = subject.Id,
-            SubjectName = subject.Name,
-            Questions = questionDtos
         };
 
         return Ok(result);

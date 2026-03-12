@@ -1,4 +1,4 @@
-﻿namespace api.DTOs.Exam;
+﻿namespace api.DTOs.Exams;
 
 public class ExamResultDto
 {

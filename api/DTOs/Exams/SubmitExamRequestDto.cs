@@ -1,4 +1,4 @@
-﻿namespace api.DTOs.Exam;
+﻿namespace api.DTOs.Exams;
 
 public class SubmitExamRequestDto
 {
@@ -10,5 +10,5 @@ public class SubmitExamRequestDto
 public class SubmittedAnswerDto
 {
     public int QuestionId { get; set; }
-    public string SelectedAnswer { get; set; } = null!;
+    public int SelectedAnswerOptionId { get; set; }
 }
