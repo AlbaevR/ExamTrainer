@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using api.Data;
+using api.DTOs.Subject;
+using api.Mappers;
 
 namespace api.Controllers;
 
@@ -18,13 +20,20 @@ public class SubjectController : ControllerBase
     public IActionResult GetSubjects()
     {
         var subjects = _context.Subjects
-            .Select(s => new
-            {
-                s.Id,
-                s.Name
-            })
+            .Select(s => s.ToSubjectDto())
             .ToList();
 
         return Ok(subjects);
+    }
+
+    [HttpPost]
+    public IActionResult CreateSubject([FromBody] CreateSubjectDto createSubjectDto)
+    {
+        var subjectModel = createSubjectDto.ToSubjectFromCreateDto();
+
+        _context.Subjects.Add(subjectModel);
+        _context.SaveChanges();
+
+        return CreatedAtAction(nameof(GetSubjects), new { id = subjectModel.Id }, subjectModel.ToSubjectDto());
     }
 }

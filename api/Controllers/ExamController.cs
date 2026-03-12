@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using api.Data;
-using api.DTOs;
 using api.Models;
+using api.DTOs.Exam;
+using api.DTOs.Question;
 
 
 namespace api.Controllers;

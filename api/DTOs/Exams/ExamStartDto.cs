@@ -1,4 +1,6 @@
-﻿namespace api.DTOs
+﻿using api.DTOs.Question;
+
+namespace api.DTOs.Exam
 {
     public class ExamStartDto
     {

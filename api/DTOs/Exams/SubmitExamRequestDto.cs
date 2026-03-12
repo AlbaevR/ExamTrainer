@@ -1,4 +1,4 @@
-﻿namespace api.DTOs;
+﻿namespace api.DTOs.Exam;
 
 public class SubmitExamRequestDto
 {

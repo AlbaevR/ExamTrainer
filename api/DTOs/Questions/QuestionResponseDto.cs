@@ -1,4 +1,4 @@
-namespace api.DTOs;
+namespace api.DTOs.Question;
 
 public class QuestionResponseDto
 {
