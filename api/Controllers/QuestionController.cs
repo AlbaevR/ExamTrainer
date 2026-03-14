@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using api.Data;
 using api.DTOs.Questions;
 using api.Mappers;
+using api.Repositories.Interfaces;
 
 namespace api.Controllers;
 
@@ -10,22 +9,18 @@ namespace api.Controllers;
 [Route("api/subjects/{subjectId}/questions")]
 public class QuestionController : ControllerBase
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IQuestionRepository _questionRepository;
 
-    public QuestionController(ApplicationDbContext context)
+    public QuestionController(IQuestionRepository questionRepository)
     {
-        _context = context;
+        _questionRepository = questionRepository;
     }
 
     // GET /api/subjects/{subjectId}/questions
     [HttpGet]
-    public IActionResult GetQuestions(int subjectId)
+    public async Task<IActionResult> GetQuestions(int subjectId)
     {
-        var questions = _context.Questions
-            .Where(q => q.SubjectId == subjectId)
-            .Include(q => q.Translations)
-            .Include(q => q.AnswerOptions).ThenInclude(a => a.Translations)
-            .ToList()
+        var questions = (await _questionRepository.GetBySubjectIdAsync(subjectId))
             .Select(q => q.ToQuestionDto())
             .ToList();
 
@@ -34,38 +29,27 @@ public class QuestionController : ControllerBase
 
     // POST /api/subjects/{subjectId}/questions
     [HttpPost]
-    public IActionResult CreateQuestion(int subjectId, [FromBody] CreateQuestionDto dto)
+    public async Task<IActionResult> CreateQuestion(int subjectId, [FromBody] CreateQuestionDto dto)
     {
         if (dto == null)
             return BadRequest();
 
-        var subject = _context.Subjects.FirstOrDefault(s => s.Id == subjectId);
-        if (subject == null)
-            return NotFound("Subject not found.");
-
         var question = dto.ToQuestionEntity(subjectId);
+        var created = await _questionRepository.CreateAsync(question);
 
-        _context.Questions.Add(question);
-        _context.SaveChanges();
-
-        return CreatedAtAction(nameof(GetQuestions), new { subjectId = subjectId }, question.ToQuestionDto());
+        return CreatedAtAction(nameof(GetQuestions), new { subjectId = subjectId }, created.ToQuestionDto());
     }
 
     // GET /api/subjects/{subjectId}/questions/random?lang=ru
     [HttpGet("random")]
-    public IActionResult GetRandomQuestion(int subjectId, [FromQuery] string? lang)
+    public async Task<IActionResult> GetRandomQuestion(int subjectId, [FromQuery] string? lang)
     {
-        var question = _context.Questions
-            .Where(q => q.SubjectId == subjectId)
-            .Include(q => q.Translations)
-            .Include(q => q.AnswerOptions).ThenInclude(a => a.Translations)
-            .OrderBy(q => Guid.NewGuid())
-            .FirstOrDefault();
+        var question = await _questionRepository.GetRandomBySubjectAsync(subjectId);
 
         if (question == null)
             return NotFound("No questions found for this subject.");
 
-        var dto = question.ToLocalizedQuestionResponseDto(lang ?? "");
+        var dto = question.ToLocalizedQuestionResponseDto(lang ?? string.Empty);
 
         return Ok(dto);
     }

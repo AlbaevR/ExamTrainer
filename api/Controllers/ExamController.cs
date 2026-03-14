@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using api.Data;
 using api.DTOs.Exams;
 using api.Mappers;
+using api.Repositories.Interfaces;
 using api.Models;
 
 namespace api.Controllers;
@@ -11,30 +10,31 @@ namespace api.Controllers;
 [Route("api/exam")]
 public class ExamController : ControllerBase
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IQuestionRepository _questionRepository;
+    private readonly IExamAttemptRepository _examAttemptRepository;
+    private readonly ISubjectRepository _subjectRepository;
 
-    public ExamController(ApplicationDbContext context)
+    public ExamController(
+        IQuestionRepository questionRepository,
+        IExamAttemptRepository examAttemptRepository,
+        ISubjectRepository subjectRepository)
     {
-        _context = context;
+        _questionRepository = questionRepository;
+        _examAttemptRepository = examAttemptRepository;
+        _subjectRepository = subjectRepository;
     }
 
     // GET /api/exam/start/{subjectId}?lang=ru
     [HttpGet("start/{subjectId}")]
-    public IActionResult StartExam(int subjectId, [FromQuery] string? lang)
+    public async Task<IActionResult> StartExam(int subjectId, [FromQuery] string? lang)
     {
-        var subject = _context.Subjects
-            .Include(s => s.Translations)
-            .FirstOrDefault(s => s.Id == subjectId);
-
+        var subject = await _subjectRepository.GetByIdAsync(subjectId);
         if (subject == null)
             return NotFound("Subject not found.");
 
         var language = lang ?? string.Empty;
 
-        var questions = _context.Questions
-            .Where(q => q.SubjectId == subjectId)
-            .Include(q => q.Translations)
-            .Include(q => q.AnswerOptions).ThenInclude(a => a.Translations)
+        var questions = (await _questionRepository.GetBySubjectIdAsync(subjectId))
             .OrderBy(q => Guid.NewGuid())
             .Take(30)
             .ToList();
@@ -54,29 +54,28 @@ public class ExamController : ControllerBase
 
     // POST /api/exam/submit
     [HttpPost("submit")]
-    public IActionResult SubmitExam([FromBody] SubmitExamRequestDto request)
+    public async Task<IActionResult> SubmitExam([FromBody] SubmitExamRequestDto request)
     {
         if (request == null || request.Answers == null || request.Answers.Count == 0)
             return BadRequest("No answers submitted.");
 
-        var questionIds = request.Answers.Select(a => a.QuestionId).ToList();
-
         var answerOptionIds = request.Answers.Select(a => a.SelectedAnswerOptionId).ToList();
 
-        var options = _context.AnswerOptions
-            .Where(o => answerOptionIds.Contains(o.Id))
-            .ToList();
+        // Load options by id via question repository by reading question entities (could be optimized)
+        var optionLookup = new Dictionary<int, bool>();
 
-        int score = 0;
-
-        foreach (var submitted in request.Answers)
+        foreach (var ans in request.Answers)
         {
-            var option = options.FirstOrDefault(o => o.Id == submitted.SelectedAnswerOptionId);
-            if (option != null && option.IsCorrect)
-            {
-                score++;
-            }
+            var question = await _questionRepository.GetByIdAsync(ans.QuestionId);
+            if (question == null)
+                return BadRequest("Some questions do not belong to the selected subject.");
+
+            var option = question.AnswerOptions.FirstOrDefault(o => o.Id == ans.SelectedAnswerOptionId);
+            if (option != null)
+                optionLookup[option.Id] = option.IsCorrect;
         }
+
+        int score = request.Answers.Count(a => optionLookup.ContainsKey(a.SelectedAnswerOptionId) && optionLookup[a.SelectedAnswerOptionId]);
 
         var attempt = new ExamAttempt
         {
@@ -86,8 +85,7 @@ public class ExamController : ControllerBase
             TakenAt = DateTime.UtcNow
         };
 
-        _context.ExamAttempts.Add(attempt);
-        _context.SaveChanges();
+        await _examAttemptRepository.CreateAsync(attempt);
 
         var result = new ExamResultDto
         {

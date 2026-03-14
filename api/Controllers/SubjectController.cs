@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using api.Data;
 using api.DTOs.Subjects;
 using api.Mappers;
+using api.Repositories.Interfaces;
 
 namespace api.Controllers
 {
@@ -10,18 +9,17 @@ namespace api.Controllers
     [Route("api/subjects")]
     public class SubjectController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ISubjectRepository _subjectRepository;
 
-        public SubjectController(ApplicationDbContext context)
+        public SubjectController(ISubjectRepository subjectRepository)
         {
-            _context = context;
+            _subjectRepository = subjectRepository;
         }
 
         [HttpGet]
-        public IActionResult GetSubjects()
+        public async Task<IActionResult> GetSubjects()
         {
-            var subjects = _context.Subjects
-                .Include(s => s.Translations)
+            var subjects = (await _subjectRepository.GetAllAsync())
                 .Select(s => s.ToSubjectDto())
                 .ToList();
 
@@ -29,25 +27,22 @@ namespace api.Controllers
         }
 
         [HttpPost]
-        public IActionResult CreateSubject([FromBody] CreateSubjectDto createSubjectDto)
+        public async Task<IActionResult> CreateSubject([FromBody] CreateSubjectDto createSubjectDto)
         {
             if (createSubjectDto == null || createSubjectDto.Translations == null || createSubjectDto.Translations.Count == 0)
                 return BadRequest("Subject must have at least one translation.");
 
             var subjectModel = createSubjectDto.ToSubjectFromCreateDto();
 
-            _context.Subjects.Add(subjectModel);
-            _context.SaveChanges();
+            var created = await _subjectRepository.CreateAsync(subjectModel);
 
-            return CreatedAtAction(nameof(GetSubjects), new { id = subjectModel.Id }, subjectModel.ToSubjectDto());
+            return CreatedAtAction(nameof(GetSubjects), new { id = created.Id }, created.ToSubjectDto());
         }
 
         [HttpGet("{subjectId}")]
-        public IActionResult GetSubject(int subjectId, [FromQuery] string? lang)
+        public async Task<IActionResult> GetSubject(int subjectId, [FromQuery] string? lang)
         {
-            var subject = _context.Subjects
-                .Include(s => s.Translations)
-                .FirstOrDefault(s => s.Id == subjectId);
+            var subject = await _subjectRepository.GetByIdAsync(subjectId);
 
             if (subject == null)
                 return NotFound();
