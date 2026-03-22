@@ -11,6 +11,7 @@ namespace api.Data.Seed
             var userManager = services.GetRequiredService<UserManager<AppUser>>();
             var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
 
+            string userName = "Ruslan";
             string adminEmail = "ruslanalbaev2@gmail.com";
             string adminPassword = "0559887794";
 
@@ -24,7 +25,7 @@ namespace api.Data.Seed
             {
                 user = new AppUser
                 {
-                    UserName = adminEmail,
+                    UserName = userName,
                     Email = adminEmail
                 };
 

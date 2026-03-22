@@ -49,7 +49,7 @@ import type {
 
 // --- Auth ---
 
-export function login(credentials: { username: string; password: string }): Promise<LoginResponse> {
+export function login(credentials: { email: string; password: string }): Promise<LoginResponse> {
   return apiFetch<LoginResponse>('/api/account/login', {
     method: 'POST',
     body: JSON.stringify(credentials),

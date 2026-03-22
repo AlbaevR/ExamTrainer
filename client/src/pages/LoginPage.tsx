@@ -11,7 +11,7 @@ export function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
   const t = useT();
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -22,7 +22,7 @@ export function LoginPage() {
     setError(null);
 
     try {
-      const result = await loginApi({ username, password });
+      const result = await loginApi({ email, password });
       login(result.token, result.username);
       navigate('/');
     } catch (err: unknown) {
@@ -42,15 +42,15 @@ export function LoginPage() {
 
         <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">
-            <label htmlFor="username">{t.username}</label>
+            <label htmlFor="email">{t.email}</label>
             <input
-              id="username"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
               disabled={loading}
-              placeholder={t.username}
+              placeholder={t.email}
             />
           </div>
           <div className="form-group">
