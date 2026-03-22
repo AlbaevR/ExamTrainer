@@ -1,0 +1,29 @@
+.subjects-page {
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.subjects-page h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 0.25rem;
+}
+
+.subjects-subtitle {
+  color: #6b7280;
+  margin: 0 0 1.5rem;
+  font-size: 0.95rem;
+}
+
+.subjects-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.empty-state {
+  text-align: center;
+  color: #9ca3af;
+  padding: 2rem;
+}

@@ -1,0 +1,36 @@
+.exam-page {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.exam-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.exam-header h1 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.exam-progress {
+  font-size: 0.8rem;
+  color: #6b7280;
+  background: #f3f4f6;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  font-weight: 500;
+}
+
+.exam-nav {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1.25rem;
+  gap: 0.75rem;
+}
