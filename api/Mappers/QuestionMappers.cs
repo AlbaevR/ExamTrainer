@@ -116,4 +116,27 @@ public static class QuestionMappers
         // default: pick first translation
         return question.ToLocalizedQuestionResponseDto(string.Empty);
     }
+
+    public static QuestionWithTranslationsDto ToQuestionWithTranslationsDto(this Question question)
+    {
+        return new QuestionWithTranslationsDto
+        {
+            Id = question.Id,
+            Translations = question.Translations.Select(t => new QuestionTranslationDto
+            {
+                LanguageCode = t.LanguageCode,
+                Text = t.Text
+            }).ToList(),
+            AnswerOptions = question.AnswerOptions.Select(a => new AnswerOptionWithTranslationsDto
+            {
+                Id = a.Id,
+                IsCorrect = a.IsCorrect,
+                Translations = a.Translations.Select(at => new QuestionTranslationDto
+                {
+                    LanguageCode = at.LanguageCode,
+                    Text = at.Text
+                }).ToList()
+            }).ToList()
+        };
+    }
 }

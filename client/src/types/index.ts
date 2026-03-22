@@ -49,3 +49,26 @@ export interface RegisterRequest {
   email: string;
   password: string;
 }
+
+// Admin translation models
+export interface TranslationEntry {
+  languageCode: string;
+  text: string;
+}
+
+export interface SubjectWithTranslations {
+  id: number;
+  translations: TranslationEntry[];
+}
+
+export interface AnswerOptionWithTranslations {
+  id: number;
+  isCorrect: boolean;
+  translations: TranslationEntry[];
+}
+
+export interface QuestionWithTranslations {
+  id: number;
+  translations: TranslationEntry[];
+  answerOptions: AnswerOptionWithTranslations[];
+}

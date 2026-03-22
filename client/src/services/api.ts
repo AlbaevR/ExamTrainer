@@ -35,7 +35,17 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   return text ? JSON.parse(text) : ({} as T);
 }
 
-import type { Subject, ExamStart, SubmitExamRequest, ExamResult, LoginResponse, Question, RegisterRequest } from '../types';
+import type { 
+  Subject, 
+  ExamStart, 
+  SubmitExamRequest, 
+  ExamResult, 
+  LoginResponse, 
+  Question, 
+  RegisterRequest,
+  SubjectWithTranslations,
+  QuestionWithTranslations
+} from '../types';
 
 // --- Auth ---
 
@@ -55,8 +65,13 @@ export function register(data: RegisterRequest): Promise<LoginResponse> {
 
 // --- Subjects ---
 
-export function getSubjects(): Promise<Subject[]> {
-  return apiFetch<Subject[]>('/api/subjects');
+export function getSubjects(lang?: string): Promise<Subject[]> {
+  const query = lang ? `?lang=${encodeURIComponent(lang)}` : '';
+  return apiFetch<Subject[]>(`/api/subjects${query}`);
+}
+
+export function getAdminSubject(id: number): Promise<SubjectWithTranslations> {
+  return apiFetch<SubjectWithTranslations>(`/api/subjects/${id}/admin`);
 }
 
 export function createSubject(data: { translations: { languageCode: string; name: string }[] }): Promise<Subject> {
@@ -81,8 +96,13 @@ export function deleteSubject(id: number): Promise<void> {
 
 // --- Questions ---
 
-export function getAdminQuestions(subjectId: number): Promise<Question[]> {
-  return apiFetch<Question[]>(`/api/subjects/${subjectId}/questions`);
+export function getAdminQuestions(subjectId: number, lang?: string): Promise<Question[]> {
+  const query = lang ? `?lang=${encodeURIComponent(lang)}` : '';
+  return apiFetch<Question[]>(`/api/subjects/${subjectId}/questions${query}`);
+}
+
+export function getAdminQuestion(subjectId: number, id: number): Promise<QuestionWithTranslations> {
+  return apiFetch<QuestionWithTranslations>(`/api/subjects/${subjectId}/questions/${id}/admin`);
 }
 
 export function createQuestion(subjectId: number, data: {

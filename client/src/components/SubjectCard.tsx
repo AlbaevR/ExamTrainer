@@ -1,6 +1,7 @@
 import './SubjectCard.css';
 import type { Subject } from '../types';
 import type { MouseEvent } from 'react';
+import { useT } from '../i18n/strings';
 
 interface SubjectCardProps {
   subject: Subject;
@@ -12,6 +13,7 @@ interface SubjectCardProps {
 }
 
 export function SubjectCard({ subject, onClick, isAdmin, onEdit, onDelete, onManage }: SubjectCardProps) {
+  const t = useT();
   
   const handleAction = (e: MouseEvent, action: () => void) => {
     e.stopPropagation();
@@ -26,9 +28,9 @@ export function SubjectCard({ subject, onClick, isAdmin, onEdit, onDelete, onMan
       </button>
       {isAdmin && (
         <div className="subject-admin-actions">
-          <button className="btn btn-secondary btn-sm" onClick={(e) => handleAction(e, () => onEdit?.(subject))}>Edit</button>
-          <button className="btn btn-secondary btn-sm" onClick={(e) => handleAction(e, () => onManage?.(subject.id))}>Manage Qs</button>
-          <button className="btn btn-danger btn-sm" onClick={(e) => handleAction(e, () => onDelete?.(subject.id))}>Delete</button>
+          <button className="btn btn-secondary btn-sm" onClick={(e) => handleAction(e, () => onEdit?.(subject))}>{t.editBtn}</button>
+          <button className="btn btn-secondary btn-sm" onClick={(e) => handleAction(e, () => onManage?.(subject.id))}>{t.manageQsBtn}</button>
+          <button className="btn btn-danger btn-sm" onClick={(e) => handleAction(e, () => onDelete?.(subject.id))}>{t.deleteBtn}</button>
         </div>
       )}
     </div>

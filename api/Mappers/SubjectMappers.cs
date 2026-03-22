@@ -1,4 +1,4 @@
-﻿using api.DTOs.Subjects;
+using api.DTOs.Subjects;
 using api.Models;
 
 namespace api.Mappers;
@@ -58,5 +58,18 @@ public static class SubjectMappers
         }
 
         return subject;
+    }
+
+    public static SubjectWithTranslationsDto ToSubjectWithTranslationsDto(this Subject subjectModel)
+    {
+        return new SubjectWithTranslationsDto
+        {
+            Id = subjectModel.Id,
+            Translations = subjectModel.Translations.Select(t => new TranslationDto
+            {
+                LanguageCode = t.LanguageCode,
+                Text = t.Name
+            }).ToList()
+        };
     }
 }

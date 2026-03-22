@@ -1,5 +1,6 @@
 import './QuestionCard.css';
 import type { Question } from '../types';
+import { useT, formatString } from '../i18n/strings';
 
 interface QuestionCardProps {
   question: Question;
@@ -16,11 +17,13 @@ export function QuestionCard({
   selectedOptionId,
   onSelectOption,
 }: QuestionCardProps) {
+  const t = useT();
+
   return (
     <div className="question-card">
       <div className="question-header">
         <span className="question-counter">
-          Question {questionNumber} of {totalQuestions}
+          {formatString(t.questionCount, questionNumber, totalQuestions)}
         </span>
       </div>
       <h2 className="question-text">{question.text}</h2>

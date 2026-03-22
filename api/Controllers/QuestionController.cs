@@ -19,13 +19,35 @@ public class QuestionController : ControllerBase
 
     // GET /api/subjects/{subjectId}/questions
     [HttpGet]
-    public async Task<IActionResult> GetQuestions(int subjectId)
+    public async Task<IActionResult> GetQuestions(int subjectId, [FromQuery] string? lang)
     {
-        var questions = (await _questionRepository.GetBySubjectIdAsync(subjectId))
-            .Select(q => q.ToQuestionDto())
-            .ToList();
+        var questions = await _questionRepository.GetBySubjectIdAsync(subjectId);
+        
+        if (string.IsNullOrWhiteSpace(lang))
+        {
+            var dtos = questions.Select(q => q.ToQuestionDto()).ToList();
+            return Ok(dtos);
+        }
+        else
+        {
+            var dtos = questions.Select(q => q.ToLocalizedQuestionResponseDto(lang)).ToList();
+            return Ok(dtos);
+        }
+    }
 
-        return Ok(questions);
+    // GET /api/subjects/{subjectId}/questions/{id}/admin
+    [HttpGet("{id}/admin")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetQuestionAdmin(int subjectId, int id)
+    {
+        var question = await _questionRepository.GetByIdAsync(id);
+        if (question == null)
+            return NotFound();
+
+        if (question.SubjectId != subjectId)
+            return BadRequest("Question does not belong to this subject.");
+            
+        return Ok(question.ToQuestionWithTranslationsDto());
     }
 
     // POST /api/subjects/{subjectId}/questions

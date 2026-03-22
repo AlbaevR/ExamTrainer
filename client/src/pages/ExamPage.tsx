@@ -5,6 +5,8 @@ import { useApi } from '../hooks/useApi';
 import { QuestionCard } from '../components/QuestionCard';
 import { Loader } from '../components/Loader';
 import { ErrorMessage } from '../components/ErrorMessage';
+import { useLanguage } from '../contexts/LanguageContext';
+import { useT } from '../i18n/strings';
 import type { SubmittedAnswer } from '../types';
 import './ExamPage.css';
 
@@ -12,8 +14,11 @@ export function ExamPage() {
   const { subjectId } = useParams<{ subjectId: string }>();
   const navigate = useNavigate();
   const id = Number(subjectId);
+  
+  const { lang } = useLanguage();
+  const t = useT();
 
-  const { data: exam, loading, error } = useApi(() => startExam(id), [id]);
+  const { data: exam, loading, error } = useApi(() => startExam(id, lang), [id, lang]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Map<number, number>>(new Map());
@@ -21,7 +26,7 @@ export function ExamPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   if (loading) return <Loader />;
-  if (error || !exam) return <ErrorMessage message={error || 'Failed to load exam.'} />;
+  if (error || !exam) return <ErrorMessage message={error || t.failedLoadExam} />;
 
   const questions = exam.questions;
   const currentQuestion = questions[currentIndex];
@@ -54,7 +59,7 @@ export function ExamPage() {
       });
       navigate('/result', { state: { result, subjectName: exam?.subjectName ?? '' } });
     } catch (err: unknown) {
-      setSubmitError(err instanceof Error ? err.message : 'Submission failed.');
+      setSubmitError(err instanceof Error ? err.message : t.failedLoadExam);
     } finally {
       setSubmitting(false);
     }
@@ -65,7 +70,7 @@ export function ExamPage() {
       <div className="exam-header">
         <h1>{exam.subjectName}</h1>
         <span className="exam-progress">
-          {answers.size} / {questions.length} answered
+          {answers.size} / {questions.length} {t.answered}
         </span>
       </div>
 
@@ -85,7 +90,7 @@ export function ExamPage() {
           disabled={currentIndex === 0}
           onClick={() => setCurrentIndex((i) => i - 1)}
         >
-          ← Previous
+          {t.previous}
         </button>
 
         {isLast ? (
@@ -94,14 +99,14 @@ export function ExamPage() {
             disabled={!allAnswered || submitting}
             onClick={handleSubmit}
           >
-            {submitting ? 'Submitting…' : 'Submit Exam'}
+            {submitting ? t.submitting : t.submitExam}
           </button>
         ) : (
           <button
             className="btn btn-primary"
             onClick={() => setCurrentIndex((i) => i + 1)}
           >
-            Next →
+            {t.next}
           </button>
         )}
       </div>

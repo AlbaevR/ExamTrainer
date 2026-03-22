@@ -4,11 +4,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { register as registerApi } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { ErrorMessage } from '../components/ErrorMessage';
+import { useT } from '../i18n/strings';
 import './RegisterPage.css';
 
 export function RegisterPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const t = useT();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -34,14 +36,14 @@ export function RegisterPage() {
   return (
     <div className="login-page">
       <div className="login-card">
-        <h1>Create Account</h1>
-        <p className="login-subtitle">Register a new account</p>
+        <h1>{t.createAccount}</h1>
+        <p className="login-subtitle">{t.registerAccount}</p>
 
         {error && <ErrorMessage message={error} />}
 
         <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">
-            <label htmlFor="username">Username</label>
+            <label htmlFor="username">{t.username}</label>
             <input
               id="username"
               type="text"
@@ -49,11 +51,11 @@ export function RegisterPage() {
               onChange={(e) => setUsername(e.target.value)}
               required
               disabled={loading}
-              placeholder="Choose a username"
+              placeholder={t.username}
             />
           </div>
           <div className="form-group">
-            <label htmlFor="email">Email</label>
+            <label htmlFor="email">{t.email}</label>
             <input
               id="email"
               type="email"
@@ -61,11 +63,11 @@ export function RegisterPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={loading}
-              placeholder="Enter your email"
+              placeholder={t.email}
             />
           </div>
           <div className="form-group">
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">{t.password}</label>
             <input
               id="password"
               type="password"
@@ -73,16 +75,16 @@ export function RegisterPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               disabled={loading}
-              placeholder="Choose a password"
+              placeholder={t.password}
             />
           </div>
           <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? 'Creating account…' : 'Register'}
+            {loading ? t.registering : t.registerBtn}
           </button>
         </form>
 
         <p className="login-switch">
-          Already have an account? <Link to="/login">Sign in</Link>
+          {t.alreadyHaveAccount} <Link to="/login">{t.login}</Link>
         </p>
       </div>
     </div>

@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { ExamResult } from '../types';
+import { useT } from '../i18n/strings';
 import './ResultPage.css';
 
 interface ResultState {
@@ -11,13 +12,14 @@ export function ResultPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const state = location.state as ResultState | null;
+  const t = useT();
 
   if (!state) {
     return (
       <div className="result-page">
-        <p>No result data. Please take an exam first.</p>
+        <p>{t.noResultData}</p>
         <button className="btn btn-primary" onClick={() => navigate('/')}>
-          Go to Subjects
+          {t.goToSubjects}
         </button>
       </div>
     );
@@ -30,30 +32,30 @@ export function ResultPage() {
     <div className="result-page">
       <div className="result-card">
         <div className={`result-badge ${passed ? 'pass' : 'fail'}`}>
-          {passed ? '✓ Passed' : '✗ Failed'}
+          {passed ? t.passed : t.failed}
         </div>
 
-        <h1>Exam Results</h1>
+        <h1>{t.examResults}</h1>
         {subjectName && <p className="result-subject">{subjectName}</p>}
 
         <div className="result-stats">
           <div className="stat">
             <span className="stat-value">{result.score}</span>
-            <span className="stat-label">Correct</span>
+            <span className="stat-label">{t.correct}</span>
           </div>
           <div className="stat">
             <span className="stat-value">{result.totalQuestions}</span>
-            <span className="stat-label">Total</span>
+            <span className="stat-label">{t.total}</span>
           </div>
           <div className="stat">
             <span className="stat-value">{result.percentage}%</span>
-            <span className="stat-label">Score</span>
+            <span className="stat-label">{t.score}</span>
           </div>
         </div>
 
         <div className="result-actions">
           <button className="btn btn-primary" onClick={() => navigate('/')}>
-            Back to Subjects
+            {t.backToSubjects}
           </button>
         </div>
       </div>

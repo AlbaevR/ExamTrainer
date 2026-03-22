@@ -82,3 +82,19 @@
 .btn-secondary:hover:not(:disabled) {
   background: #e5e7eb;
 }
+
+.lang-select {
+  padding: 0.4rem 0.5rem;
+  font-size: 0.875rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background-color: #f9fafb;
+  color: #374151;
+  cursor: pointer;
+  outline: none;
+}
+
+.lang-select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}

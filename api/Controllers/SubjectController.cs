@@ -18,13 +18,31 @@ namespace api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetSubjects()
+        public async Task<IActionResult> GetSubjects([FromQuery] string? lang)
         {
-            var subjects = (await _subjectRepository.GetAllAsync())
-                .Select(s => s.ToSubjectDto())
-                .ToList();
+            var subjects = await _subjectRepository.GetAllAsync();
+            
+            if (string.IsNullOrWhiteSpace(lang))
+            {
+                var dtos = subjects.Select(s => s.ToSubjectDto()).ToList();
+                return Ok(dtos);
+            }
+            else
+            {
+                var dtos = subjects.Select(s => s.ToLocalizedSubjectDto(lang)).ToList();
+                return Ok(dtos);
+            }
+        }
 
-            return Ok(subjects);
+        [HttpGet("{id}/admin")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetSubjectAdmin(int id)
+        {
+            var subject = await _subjectRepository.GetByIdAsync(id);
+            if (subject == null)
+                return NotFound();
+            
+            return Ok(subject.ToSubjectWithTranslationsDto());
         }
 
         [HttpPost]
