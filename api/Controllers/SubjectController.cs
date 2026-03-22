@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using api.DTOs.Subjects;
 using api.Mappers;
 using api.Repositories.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 
 namespace api.Controllers
 {
@@ -27,6 +28,7 @@ namespace api.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateSubject([FromBody] CreateSubjectDto createSubjectDto)
         {
             if (createSubjectDto == null || createSubjectDto.Translations == null || createSubjectDto.Translations.Count == 0)
@@ -51,6 +53,34 @@ namespace api.Controllers
                 return Ok(subject.ToSubjectDto());
 
             return Ok(subject.ToLocalizedSubjectDto(lang));
+        }
+
+        [HttpPatch("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdateSubject(int id, [FromBody] UpdateSubjectDto updateSubjectDto)
+        {
+            if (updateSubjectDto == null || updateSubjectDto.Translations == null || updateSubjectDto.Translations.Count == 0)
+                return BadRequest("Subject must have at least one translation.");
+
+            var subjectModel = updateSubjectDto.ToSubjectFromUpdateDto();
+            var updated = await _subjectRepository.UpdateAsync(id, subjectModel);
+
+            if (updated == null)
+                return NotFound();
+
+            return Ok(updated.ToSubjectDto());
+        }
+
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteSubject(int id)
+        {
+            var deleted = await _subjectRepository.DeleteAsync(id);
+
+            if (!deleted)
+                return NotFound();
+
+            return NoContent();
         }
     }
 }

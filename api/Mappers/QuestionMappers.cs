@@ -50,6 +50,45 @@ public static class QuestionMappers
         return question;
     }
 
+    public static Question ToQuestionEntity(this UpdateQuestionDto dto, int subjectId)
+    {
+        var question = new Question
+        {
+            SubjectId = subjectId
+        };
+
+        foreach (var t in dto.Translations)
+        {
+            question.Translations.Add(new QuestionTranslation
+            {
+                LanguageCode = t.LanguageCode,
+                Text = t.Text
+            });
+        }
+
+        foreach (var ao in dto.AnswerOptions)
+        {
+            var option = new AnswerOption
+            {
+                Id = ao.Id,
+                IsCorrect = ao.IsCorrect
+            };
+
+            foreach (var aot in ao.Translations)
+            {
+                option.Translations.Add(new AnswerOptionTranslation
+                {
+                    LanguageCode = aot.LanguageCode,
+                    Text = aot.Text
+                });
+            }
+
+            question.AnswerOptions.Add(option);
+        }
+
+        return question;
+    }
+
     public static QuestionResponseDto ToLocalizedQuestionResponseDto(this Question question, string languageCode)
     {
         var qTranslation = question.Translations.FirstOrDefault(t => t.LanguageCode == languageCode)
@@ -59,7 +98,7 @@ public static class QuestionMappers
             .Select(a =>
             {
                 var at = a.Translations.FirstOrDefault(t => t.LanguageCode == languageCode) ?? a.Translations.FirstOrDefault();
-                return new AnswerOptionDto { Id = a.Id, Text = at?.Text ?? string.Empty };
+                return new AnswerOptionDto { Id = a.Id, Text = at?.Text ?? string.Empty, IsCorrect = a.IsCorrect };
             })
             .OrderBy(a => Guid.NewGuid())
             .ToList();

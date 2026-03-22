@@ -8,5 +8,7 @@ namespace api.Repositories.Interfaces
         Task<Question?> GetByIdAsync(int id);
         Task<Question> CreateAsync(Question question);
         Task<Question?> GetRandomBySubjectAsync(int subjectId);
+        Task<Question?> UpdateAsync(int id, Question question);
+        Task<bool> DeleteAsync(int id);
     }
 }

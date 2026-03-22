@@ -6,6 +6,7 @@ export interface Subject {
 export interface AnswerOption {
   id: number;
   text: string;
+  isCorrect?: boolean; // For admin forms
 }
 
 export interface Question {
@@ -35,4 +36,16 @@ export interface ExamResult {
   score: number;
   totalQuestions: number;
   percentage: number;
+}
+
+export interface LoginResponse {
+  username: string;
+  email: string;
+  token: string;
+}
+
+export interface RegisterRequest {
+  username: string;
+  email: string;
+  password: string;
 }

@@ -8,6 +8,26 @@
   border-bottom: 1px solid #e5e7eb;
   padding: 0.875rem 1.5rem;
   background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.welcome-text {
+  font-size: 0.875rem;
+  color: #374151;
+  font-weight: 500;
+}
+
+.btn-sm {
+  padding: 0.4rem 0.875rem;
+  font-size: 0.75rem;
 }
 
 .app-logo {

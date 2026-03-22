@@ -43,4 +43,20 @@ public static class SubjectMappers
 
         return subject;
     }
+
+    public static Subject ToSubjectFromUpdateDto(this UpdateSubjectDto subjectDto)
+    {
+        var subject = new Subject();
+
+        foreach (var t in subjectDto.Translations)
+        {
+            subject.Translations.Add(new SubjectTranslation
+            {
+                LanguageCode = t.LanguageCode,
+                Name = t.Name
+            });
+        }
+
+        return subject;
+    }
 }

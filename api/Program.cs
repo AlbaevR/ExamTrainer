@@ -1,4 +1,5 @@
 using api.Data;
+using api.Data.Seed;
 using api.Models;
 using api.Repositories.Implementations;
 using api.Repositories.Interfaces;
@@ -107,5 +108,11 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    await DbSeeder.SeedAdminAsync(services);
+}
 
 app.Run();

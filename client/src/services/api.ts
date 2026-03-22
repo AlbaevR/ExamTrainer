@@ -1,29 +1,121 @@
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5062';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5041';
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
+  const token = localStorage.getItem('token');
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  };
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const response = await fetch(`${BASE_URL}${path}`, {
-    headers: {
-      'Content-Type': 'application/json',
-    },
     ...options,
+    headers: {
+      ...headers,
+      ...options?.headers,
+    },
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      window.dispatchEvent(new Event('api:unauthorized'));
+    }
     const message = await response.text();
     throw new Error(message || `Request failed with status ${response.status}`);
   }
 
-  return response.json();
+  // Handle 204 No Content
+  if (response.status === 204) {
+    return {} as T;
+  }
+
+  const text = await response.text();
+  return text ? JSON.parse(text) : ({} as T);
 }
 
-import type { Subject, ExamStart, SubmitExamRequest, ExamResult } from '../types';
+import type { Subject, ExamStart, SubmitExamRequest, ExamResult, LoginResponse, Question, RegisterRequest } from '../types';
+
+// --- Auth ---
+
+export function login(credentials: { username: string; password: string }): Promise<LoginResponse> {
+  return apiFetch<LoginResponse>('/api/account/login', {
+    method: 'POST',
+    body: JSON.stringify(credentials),
+  });
+}
+
+export function register(data: RegisterRequest): Promise<LoginResponse> {
+  return apiFetch<LoginResponse>('/api/account/register', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+// --- Subjects ---
 
 export function getSubjects(): Promise<Subject[]> {
   return apiFetch<Subject[]>('/api/subjects');
 }
 
+export function createSubject(data: { translations: { languageCode: string; name: string }[] }): Promise<Subject> {
+  return apiFetch<Subject>('/api/subjects', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export function updateSubject(id: number, data: { translations: { languageCode: string; name: string }[] }): Promise<Subject> {
+  return apiFetch<Subject>(`/api/subjects/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+}
+
+export function deleteSubject(id: number): Promise<void> {
+  return apiFetch<void>(`/api/subjects/${id}`, {
+    method: 'DELETE',
+  });
+}
+
+// --- Questions ---
+
+export function getAdminQuestions(subjectId: number): Promise<Question[]> {
+  return apiFetch<Question[]>(`/api/subjects/${subjectId}/questions`);
+}
+
+export function createQuestion(subjectId: number, data: {
+  translations: { languageCode: string; text: string }[];
+  answerOptions: { isCorrect: boolean; translations: { languageCode: string; text: string }[] }[];
+}): Promise<Question> {
+  return apiFetch<Question>(`/api/subjects/${subjectId}/questions`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export function updateQuestion(subjectId: number, id: number, data: {
+  translations: { languageCode: string; text: string }[];
+  answerOptions: { id: number; isCorrect: boolean; translations: { languageCode: string; text: string }[] }[];
+}): Promise<Question> {
+  return apiFetch<Question>(`/api/subjects/${subjectId}/questions/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+}
+
+export function deleteQuestion(subjectId: number, id: number): Promise<void> {
+  return apiFetch<void>(`/api/subjects/${subjectId}/questions/${id}`, {
+    method: 'DELETE',
+  });
+}
+
+// --- Exam ---
+
 export function startExam(subjectId: number, lang?: string): Promise<ExamStart> {
   const query = lang ? `?lang=${encodeURIComponent(lang)}` : '';
+  // Correct endpoint: GET /api/exam/start/{subjectId}
   return apiFetch<ExamStart>(`/api/exam/start/${subjectId}${query}`);
 }
 

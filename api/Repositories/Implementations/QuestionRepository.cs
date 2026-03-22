@@ -47,5 +47,45 @@ namespace api.Repositories.Implementations
                 .OrderBy(q => Guid.NewGuid())
                 .FirstOrDefaultAsync();
         }
+
+        public async Task<Question?> UpdateAsync(int id, Question question)
+        {
+            var existingQuestion = await _context.Questions
+                .Include(q => q.Translations)
+                .Include(q => q.AnswerOptions).ThenInclude(a => a.Translations)
+                .FirstOrDefaultAsync(q => q.Id == id);
+
+            if (existingQuestion == null)
+                return null;
+
+            // Update translations
+            existingQuestion.Translations.Clear();
+            foreach (var translation in question.Translations)
+            {
+                existingQuestion.Translations.Add(translation);
+            }
+
+            // Update answer options
+            existingQuestion.AnswerOptions.Clear();
+            foreach (var answerOption in question.AnswerOptions)
+            {
+                existingQuestion.AnswerOptions.Add(answerOption);
+            }
+
+            _context.Questions.Update(existingQuestion);
+            await _context.SaveChangesAsync();
+            return existingQuestion;
+        }
+
+        public async Task<bool> DeleteAsync(int id)
+        {
+            var question = await _context.Questions.FirstOrDefaultAsync(q => q.Id == id);
+            if (question == null)
+                return false;
+
+            _context.Questions.Remove(question);
+            await _context.SaveChangesAsync();
+            return true;
+        }
     }
 }
