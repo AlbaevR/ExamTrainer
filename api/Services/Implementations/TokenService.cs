@@ -1,4 +1,4 @@
-﻿using api.Models;
+using api.Models;
 using api.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
@@ -26,6 +26,7 @@ namespace api.Services.Implementations
         {
             var claims = new List<Claim>
             {
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id),
                 new Claim(JwtRegisteredClaimNames.GivenName, user.UserName),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email)
             };

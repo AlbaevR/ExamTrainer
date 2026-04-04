@@ -3,6 +3,8 @@ using api.DTOs.Exams;
 using api.Mappers;
 using api.Repositories.Interfaces;
 using api.Models;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace api.Controllers;
 
@@ -59,10 +61,11 @@ public class ExamController : ControllerBase
         if (request == null || request.Answers == null || request.Answers.Count == 0)
             return BadRequest("No answers submitted.");
 
-        var answerOptionIds = request.Answers.Select(a => a.SelectedAnswerOptionId).ToList();
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
         // Load options by id via question repository by reading question entities (could be optimized)
-        var optionLookup = new Dictionary<int, bool>();
+        var userAnswers = new List<UserAnswer>();
+        int score = 0;
 
         foreach (var ans in request.Answers)
         {
@@ -72,17 +75,29 @@ public class ExamController : ControllerBase
 
             var option = question.AnswerOptions.FirstOrDefault(o => o.Id == ans.SelectedAnswerOptionId);
             if (option != null)
-                optionLookup[option.Id] = option.IsCorrect;
-        }
+            {
+                var isCorrect = option.IsCorrect;
+                if (isCorrect)
+                    score++;
 
-        int score = request.Answers.Count(a => optionLookup.ContainsKey(a.SelectedAnswerOptionId) && optionLookup[a.SelectedAnswerOptionId]);
+                userAnswers.Add(new UserAnswer
+                {
+                    QuestionId = ans.QuestionId,
+                    SelectedAnswerOptionId = ans.SelectedAnswerOptionId,
+                    IsCorrect = isCorrect
+                });
+            }
+        }
 
         var attempt = new ExamAttempt
         {
             StudentName = request.StudentName,
+            UserId = userId,
             SubjectId = request.SubjectId,
             Score = score,
-            TakenAt = DateTime.UtcNow
+            TotalQuestions = request.Answers.Count,
+            TakenAt = DateTime.UtcNow,
+            UserAnswers = userAnswers
         };
 
         await _examAttemptRepository.CreateAsync(attempt);
@@ -95,5 +110,46 @@ public class ExamController : ControllerBase
         };
 
         return Ok(result);
+    }
+
+    // GET /api/exam/history
+    [HttpGet("history")]
+    [Authorize]
+    public async Task<IActionResult> GetExamHistory([FromQuery] string? lang)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized();
+
+        var attempts = await _examAttemptRepository.GetByUserIdAsync(userId);
+
+        var language = lang ?? string.Empty;
+        var dtos = attempts.Select(a => a.ToHistoryDto(language)).ToList();
+
+        return Ok(dtos);
+    }
+
+    // GET /api/exam/attempts/{id}
+    [HttpGet("attempts/{id}")]
+    [Authorize]
+    public async Task<IActionResult> GetExamAttemptDetail(int id, [FromQuery] string? lang)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized();
+
+        var attempt = await _examAttemptRepository.GetByIdWithDetailsAsync(id);
+
+        if (attempt == null)
+            return NotFound();
+
+        // Ensure user can only view their own attempts
+        if (attempt.UserId != userId)
+            return Forbid();
+
+        var language = lang ?? string.Empty;
+        var dto = attempt.ToDetailDto(language);
+
+        return Ok(dto);
     }
 }

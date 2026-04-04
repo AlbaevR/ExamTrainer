@@ -21,6 +21,7 @@ public class ApplicationDbContext : IdentityDbContext<AppUser>
 
     public DbSet<AnswerOptionTranslation> AnswerOptionTranslations { get; set; }
     public DbSet<ExamAttempt> ExamAttempts { get; set; }
+    public DbSet<UserAnswer> UserAnswers { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -51,6 +52,24 @@ public class ApplicationDbContext : IdentityDbContext<AppUser>
         modelBuilder.Entity<QuestionTranslation>()
             .HasIndex(qt => new { qt.QuestionId, qt.LanguageCode })
             .IsUnique();
+
+        modelBuilder.Entity<UserAnswer>()
+            .HasOne(ua => ua.ExamAttempt)
+            .WithMany(ea => ea.UserAnswers)
+            .HasForeignKey(ua => ua.ExamAttemptId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<UserAnswer>()
+            .HasOne(ua => ua.Question)
+            .WithMany()
+            .HasForeignKey(ua => ua.QuestionId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        modelBuilder.Entity<UserAnswer>()
+            .HasOne(ua => ua.SelectedAnswerOption)
+            .WithMany()
+            .HasForeignKey(ua => ua.SelectedAnswerOptionId)
+            .OnDelete(DeleteBehavior.NoAction);
 
         List<IdentityRole> roles = new List<IdentityRole>
         {

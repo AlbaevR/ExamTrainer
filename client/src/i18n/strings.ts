@@ -60,6 +60,15 @@ export interface I18nStrings {
   tryAgain: string;
   back: string;
   adminOnly: string;
+
+  // History
+  myHistory: string;
+  noHistory: string;
+  attemptDetail: string;
+  yourAnswer: string;
+  correctAnswer: string;
+  date: string;
+  loginToSeeHistory: string;
 }
 
 const strings: Record<LanguageCode, I18nStrings> = {
@@ -112,6 +121,13 @@ const strings: Record<LanguageCode, I18nStrings> = {
     tryAgain: 'Повторить',
     back: '← Назад',
     adminOnly: 'Доступ закрыт. Только для администраторов.',
+    myHistory: 'Мои попытки',
+    noHistory: 'У вас пока нет попыток.',
+    attemptDetail: 'Детали попытки',
+    yourAnswer: 'Ваш ответ',
+    correctAnswer: 'Правильный ответ',
+    date: 'Дата',
+    loginToSeeHistory: 'Войдите, чтобы просмотреть историю экзаменов.',
   },
   ky: {
     appName: 'ГАК Тренажеру',
@@ -162,6 +178,13 @@ const strings: Record<LanguageCode, I18nStrings> = {
     tryAgain: 'Кайра аракет кылуу',
     back: '← Артка',
     adminOnly: 'Кирүүгө тыюу салынган. Админдер үчүн гана.',
+    myHistory: 'Менин аракеттерим',
+    noHistory: 'Сизде азырынча аракеттер жок.',
+    attemptDetail: 'Аракеттин деталдары',
+    yourAnswer: 'Сиздин жооп',
+    correctAnswer: 'Туура жооп',
+    date: 'Дата',
+    loginToSeeHistory: 'Экзамен таrixын көрүү үчүн кириңиз.',
   },
   en: {
     appName: 'GAK Trainer',
@@ -212,6 +235,13 @@ const strings: Record<LanguageCode, I18nStrings> = {
     tryAgain: 'Try Again',
     back: '← Back',
     adminOnly: 'Access denied. Admin only.',
+    myHistory: 'My History',
+    noHistory: 'You have no attempts yet.',
+    attemptDetail: 'Attempt Details',
+    yourAnswer: 'Your answer',
+    correctAnswer: 'Correct answer',
+    date: 'Date',
+    loginToSeeHistory: 'Please log in to view your exam history.',
   }
 };
 

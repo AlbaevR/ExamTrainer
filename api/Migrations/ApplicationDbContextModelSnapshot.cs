@@ -389,11 +389,50 @@ namespace api.Migrations
                     b.Property<DateTime>("TakenAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("TotalQuestions")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("SubjectId");
 
+                    b.HasIndex("UserId");
+
                     b.ToTable("ExamAttempts");
+                });
+
+            modelBuilder.Entity("api.Models.UserAnswer", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ExamAttemptId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsCorrect")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("QuestionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SelectedAnswerOptionId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExamAttemptId");
+
+                    b.HasIndex("QuestionId");
+
+                    b.HasIndex("SelectedAnswerOptionId");
+
+                    b.ToTable("UserAnswers");
                 });
 
             modelBuilder.Entity("AnswerOption", b =>
@@ -510,7 +549,40 @@ namespace api.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("api.Models.AppUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId");
+
                     b.Navigation("Subject");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("api.Models.UserAnswer", b =>
+                {
+                    b.HasOne("api.Models.ExamAttempt", "ExamAttempt")
+                        .WithMany("UserAnswers")
+                        .HasForeignKey("ExamAttemptId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Question", "Question")
+                        .WithMany()
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("AnswerOption", "SelectedAnswerOption")
+                        .WithMany()
+                        .HasForeignKey("SelectedAnswerOptionId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("ExamAttempt");
+
+                    b.Navigation("Question");
+
+                    b.Navigation("SelectedAnswerOption");
                 });
 
             modelBuilder.Entity("AnswerOption", b =>
@@ -530,6 +602,11 @@ namespace api.Migrations
                     b.Navigation("Questions");
 
                     b.Navigation("Translations");
+                });
+
+            modelBuilder.Entity("api.Models.ExamAttempt", b =>
+                {
+                    b.Navigation("UserAnswers");
                 });
 #pragma warning restore 612, 618
         }

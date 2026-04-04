@@ -74,3 +74,36 @@ export interface QuestionWithTranslations {
   translations: TranslationEntry[];
   answerOptions: AnswerOptionWithTranslations[];
 }
+
+// Exam history
+export interface ExamAttemptHistory {
+  id: number;
+  subjectName: string;
+  subjectId: number;
+  score: number;
+  totalQuestions: number;
+  percentage: number;
+  takenAt: string; // ISO date string from backend
+}
+
+export interface AnswerOptionDetail {
+  id: number;
+  text: string;
+  imageUrl?: string;
+  isCorrect: boolean;
+}
+
+export interface UserAnswerDetail {
+  questionId: number;
+  questionText: string;
+  selectedAnswerOptionId: number;
+  selectedAnswerText: string;
+  selectedAnswerImageUrl?: string;
+  isCorrect: boolean;
+  allOptions: AnswerOptionDetail[];
+}
+
+export interface ExamAttemptDetail extends ExamAttemptHistory {
+  answers: UserAnswerDetail[];
+}
+

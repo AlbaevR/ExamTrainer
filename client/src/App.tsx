@@ -8,6 +8,8 @@ import { ResultPage } from './pages/ResultPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { AdminQuestionsPage } from './pages/AdminQuestionsPage';
+import { HistoryPage } from './pages/HistoryPage';
+import { AttemptDetailPage } from './pages/AttemptDetailPage';
 import './App.css';
 
 function LanguageSwitcher() {
@@ -36,6 +38,7 @@ function HeaderControls() {
       <LanguageSwitcher />
       {username ? (
         <>
+          <Link to="/history" className="btn btn-secondary btn-sm">{t.myHistory}</Link>
           <span className="welcome-text">{t.hi}, {username}</span>
           <button className="btn btn-secondary btn-sm" onClick={() => { logout(); navigate('/login'); }}>{t.logout}</button>
         </>
@@ -66,6 +69,8 @@ function App() {
               <Route path="/exam/:subjectId" element={<ExamPage />} />
               <Route path="/result" element={<ResultPage />} />
               <Route path="/admin/subjects/:subjectId/questions" element={<AdminQuestionsPage />} />
+              <Route path="/history" element={<HistoryPage />} />
+              <Route path="/history/:id" element={<AttemptDetailPage />} />
             </Routes>
           </main>
         </div>

@@ -70,7 +70,9 @@ import type {
   Question, 
   RegisterRequest,
   SubjectWithTranslations,
-  QuestionWithTranslations
+  QuestionWithTranslations,
+  ExamAttemptHistory,
+  ExamAttemptDetail,
 } from '../types';
 
 // --- Auth ---
@@ -177,3 +179,14 @@ export function submitExam(request: SubmitExamRequest): Promise<ExamResult> {
     body: JSON.stringify(request),
   });
 }
+
+export function getExamHistory(lang?: string): Promise<ExamAttemptHistory[]> {
+  const query = lang ? `?lang=${encodeURIComponent(lang)}` : '';
+  return apiFetch<ExamAttemptHistory[]>(`/api/exam/history${query}`);
+}
+
+export function getAttemptDetail(id: number, lang?: string): Promise<ExamAttemptDetail> {
+  const query = lang ? `?lang=${encodeURIComponent(lang)}` : '';
+  return apiFetch<ExamAttemptDetail>(`/api/exam/attempts/${id}${query}`);
+}
+
