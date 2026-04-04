@@ -33,8 +33,8 @@
 
 .option-item {
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
+  flex-direction: column;
+  gap: 0.5rem;
   padding: 0.75rem 1rem;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
@@ -64,4 +64,21 @@
   color: #374151;
   font-size: 0.95rem;
   line-height: 1.4;
+}
+
+/* Image shown inside an answer option during the exam */
+.option-image {
+  display: block;
+  width: 100%;
+  max-height: 120px;
+  object-fit: contain;
+  border-radius: 6px;
+  margin-bottom: 0.25rem;
+}
+
+/* Row holding the radio button and text */
+.option-item-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }

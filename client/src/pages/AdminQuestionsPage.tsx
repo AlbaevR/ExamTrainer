@@ -1,7 +1,15 @@
 import { useState } from 'react';
-import type { FormEvent } from 'react';
+import type { FormEvent, ChangeEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getAdminQuestions, createQuestion, updateQuestion, deleteQuestion, getAdminQuestion } from '../services/api';
+import {
+  getAdminQuestions,
+  createQuestion,
+  updateQuestion,
+  deleteQuestion,
+  getAdminQuestion,
+  uploadAnswerOptionImage,
+  BASE_URL,
+} from '../services/api';
 import { useApi } from '../hooks/useApi';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -10,6 +18,15 @@ import { Loader } from '../components/Loader';
 import { ErrorMessage } from '../components/ErrorMessage';
 import type { TranslationEntry } from '../types';
 import './AdminQuestionsPage.css';
+
+const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
+
+/** Prefix relative server paths (e.g. /uploads/...) with the API base URL */
+function resolveImageUrl(url: string): string {
+  if (!url) return url;
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('blob:')) return url;
+  return `${BASE_URL}${url}`;
+}
 
 interface TranslationForm {
   ru: string;
@@ -21,9 +38,24 @@ interface OptionInput {
   id?: number;
   text: TranslationForm;
   isCorrect: boolean;
+  /** File selected locally but not yet uploaded */
+  imageFile?: File;
+  /** Object URL for local preview (from URL.createObjectURL) */
+  imagePreview?: string;
+  /** Persisted URL from the server (existing or freshly uploaded) */
+  imageUrl?: string;
 }
 
 const emptyTranslations = (): TranslationForm => ({ ru: '', ky: '', en: '' });
+
+const emptyOption = (): OptionInput => ({ text: emptyTranslations(), isCorrect: false });
+
+/** Revoke object URLs to free memory */
+function revokeOptionPreviews(opts: OptionInput[]) {
+  opts.forEach(o => {
+    if (o.imagePreview) URL.revokeObjectURL(o.imagePreview);
+  });
+}
 
 export function AdminQuestionsPage() {
   const { subjectId } = useParams<{ subjectId: string }>();
@@ -51,12 +83,13 @@ export function AdminQuestionsPage() {
   if (error || !questions) return <ErrorMessage message={error || 'Failed to load questions'} onRetry={reload} />;
 
   const resetForm = () => {
+    revokeOptionPreviews(formOptions);
     setIsEditing(null);
     setShowForm(false);
     setFormText(emptyTranslations());
     setFormOptions([
-      { text: emptyTranslations(), isCorrect: true }, 
-      { text: emptyTranslations(), isCorrect: false }
+      { text: emptyTranslations(), isCorrect: true },
+      { text: emptyTranslations(), isCorrect: false },
     ]);
     setActionError(null);
   };
@@ -71,10 +104,10 @@ export function AdminQuestionsPage() {
     setIsEditing(qId);
     setLoadingForm(true);
     setShowForm(true);
-    
+
     try {
       const q = await getAdminQuestion(id, qId);
-      
+
       const qTranslations = emptyTranslations();
       q.translations.forEach(tr => {
         if (tr.languageCode === 'ru') qTranslations.ru = tr.text;
@@ -90,7 +123,7 @@ export function AdminQuestionsPage() {
           if (tr.languageCode === 'ky') oTrans.ky = tr.text;
           if (tr.languageCode === 'en') oTrans.en = tr.text;
         });
-        return { id: o.id, isCorrect: o.isCorrect, text: oTrans };
+        return { id: o.id, isCorrect: o.isCorrect, text: oTrans, imageUrl: o.imageUrl };
       });
       setFormOptions(opts);
     } catch (err: any) {
@@ -122,6 +155,43 @@ export function AdminQuestionsPage() {
     return list;
   };
 
+  const handleImageChange = (index: number, e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    // Reset the input value so the same file can be re-selected after clearing
+    e.target.value = '';
+
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setActionError(`Option ${index + 1}: Only image files are allowed.`);
+      return;
+    }
+    if (file.size > MAX_IMAGE_SIZE_BYTES) {
+      setActionError(`Option ${index + 1}: Image must be 5 MB or smaller.`);
+      return;
+    }
+
+    setActionError(null);
+
+    const next = [...formOptions];
+    // Revoke the old preview URL if there was one
+    if (next[index].imagePreview) URL.revokeObjectURL(next[index].imagePreview!);
+    next[index] = {
+      ...next[index],
+      imageFile: file,
+      imagePreview: URL.createObjectURL(file),
+      imageUrl: undefined, // will be set after upload on submit
+    };
+    setFormOptions(next);
+  };
+
+  const handleImageClear = (index: number) => {
+    const next = [...formOptions];
+    if (next[index].imagePreview) URL.revokeObjectURL(next[index].imagePreview!);
+    next[index] = { ...next[index], imageFile: undefined, imagePreview: undefined, imageUrl: undefined };
+    setFormOptions(next);
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!formText.ru.trim() || !formText.ky.trim()) {
@@ -147,20 +217,34 @@ export function AdminQuestionsPage() {
     setActionError(null);
 
     try {
+      // Upload any newly selected images and resolve final imageUrls
+      const resolvedOptions = await Promise.all(
+        formOptions.map(async opt => {
+          if (opt.imageFile) {
+            const { url } = await uploadAnswerOptionImage(opt.imageFile);
+            if (opt.imagePreview) URL.revokeObjectURL(opt.imagePreview);
+            return { ...opt, imageUrl: url, imageFile: undefined, imagePreview: undefined };
+          }
+          return opt;
+        }),
+      );
+
       if (isEditing) {
         await updateQuestion(id, isEditing, {
           translations: toPayloadTranslations(formText),
-          answerOptions: formOptions.map(o => ({
+          answerOptions: resolvedOptions.map(o => ({
             id: (o.id ?? 0) as number,
             isCorrect: o.isCorrect,
+            imageUrl: o.imageUrl,
             translations: toPayloadTranslations(o.text),
           })),
         });
       } else {
         await createQuestion(id, {
           translations: toPayloadTranslations(formText),
-          answerOptions: formOptions.map(o => ({
+          answerOptions: resolvedOptions.map(o => ({
             isCorrect: o.isCorrect,
+            imageUrl: o.imageUrl,
             translations: toPayloadTranslations(o.text),
           })),
         });
@@ -190,7 +274,7 @@ export function AdminQuestionsPage() {
       {showForm && (
         <form onSubmit={handleSubmit} className="aq-form-card">
           <h2>{isEditing ? 'Edit Question' : 'Add Question'}</h2>
-          
+
           {loadingForm ? <Loader /> : (
             <>
               <div className="form-group lang-group">
@@ -201,31 +285,35 @@ export function AdminQuestionsPage() {
                 <label>Question Text (EN)</label>
                 <input type="text" value={formText.en} onChange={e => setFormText({...formText, en: e.target.value})} />
               </div>
-              
+
               <div className="aq-options-list">
                 <label>Answer Options</label>
                 {formOptions.map((opt, i) => (
                   <div key={i} className="aq-option-row multipart">
                     <div className="aq-option-header">
                       <label>
-                        <input 
-                          type="radio" 
-                          checked={opt.isCorrect} 
+                        <input
+                          type="radio"
+                          checked={opt.isCorrect}
                           onChange={() => {
                             const next = [...formOptions];
                             next.forEach((o, idx) => o.isCorrect = (idx === i));
                             setFormOptions(next);
-                          }} 
+                          }}
                         />
                         Correct Answer
                       </label>
-                      <button 
-                        type="button" 
+                      <button
+                        type="button"
                         className="btn btn-danger btn-sm"
-                        onClick={() => setFormOptions(opts => opts.filter((_, idx) => idx !== i))}
+                        onClick={() => {
+                          if (opt.imagePreview) URL.revokeObjectURL(opt.imagePreview);
+                          setFormOptions(opts => opts.filter((_, idx) => idx !== i));
+                        }}
                         disabled={formOptions.length <= 2}
                       >Delete</button>
                     </div>
+
                     <input type="text" placeholder="RU *" value={opt.text.ru} onChange={e => {
                       const next = [...formOptions];
                       next[i].text.ru = e.target.value;
@@ -241,12 +329,41 @@ export function AdminQuestionsPage() {
                       next[i].text.en = e.target.value;
                       setFormOptions(next);
                     }} />
+
+                    {/* Image upload row */}
+                    <div className="aq-option-image-row">
+                      <label className="aq-option-image-label">
+                        Option Image (optional)
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="aq-option-file-input"
+                          onChange={e => handleImageChange(i, e)}
+                          disabled={submitting}
+                        />
+                      </label>
+                      {(opt.imagePreview || opt.imageUrl) && (
+                        <>
+                          <img
+                            src={opt.imagePreview ?? resolveImageUrl(opt.imageUrl!)}
+                            alt={`Option ${i + 1} preview`}
+                            className="aq-option-image-preview"
+                          />
+                          <button
+                            type="button"
+                            className="btn btn-secondary btn-sm"
+                            onClick={() => handleImageClear(i)}
+                            disabled={submitting}
+                          >Clear</button>
+                        </>
+                      )}
+                    </div>
                   </div>
                 ))}
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="btn btn-secondary btn-sm aq-add-opt"
-                  onClick={() => setFormOptions([...formOptions, { text: emptyTranslations(), isCorrect: false }])}
+                  onClick={() => setFormOptions([...formOptions, emptyOption()])}
                 >+ Add Option</button>
               </div>
 
@@ -276,6 +393,9 @@ export function AdminQuestionsPage() {
                 {q.answers.map(a => (
                   <li key={a.id} className={a.isCorrect ? 'aq-correct' : ''}>
                     {a.isCorrect ? '✓ ' : '○ '}{a.text}
+                    {a.imageUrl && (
+                      <img src={resolveImageUrl(a.imageUrl)} alt="answer option" className="aq-answer-thumb" />
+                    )}
                   </li>
                 ))}
               </ul>

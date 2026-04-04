@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5041';
+export const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5041';
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const token = localStorage.getItem('token');
@@ -29,6 +29,32 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   // Handle 204 No Content
   if (response.status === 204) {
     return {} as T;
+  }
+
+  const text = await response.text();
+  return text ? JSON.parse(text) : ({} as T);
+}
+
+// Multipart upload helper – lets the browser set the correct Content-Type boundary
+async function apiFetchMultipart<T>(path: string, body: FormData): Promise<T> {
+  const token = localStorage.getItem('token');
+  const headers: HeadersInit = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const response = await fetch(`${BASE_URL}${path}`, {
+    method: 'POST',
+    headers,
+    body,
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      window.dispatchEvent(new Event('api:unauthorized'));
+    }
+    const message = await response.text();
+    throw new Error(message || `Request failed with status ${response.status}`);
   }
 
   const text = await response.text();
@@ -105,9 +131,15 @@ export function getAdminQuestion(subjectId: number, id: number): Promise<Questio
   return apiFetch<QuestionWithTranslations>(`/api/subjects/${subjectId}/questions/${id}/admin`);
 }
 
+export function uploadAnswerOptionImage(file: File): Promise<{ url: string }> {
+  const form = new FormData();
+  form.append('file', file);
+  return apiFetchMultipart<{ url: string }>('/api/upload/answer-option-image', form);
+}
+
 export function createQuestion(subjectId: number, data: {
   translations: { languageCode: string; text: string }[];
-  answerOptions: { isCorrect: boolean; translations: { languageCode: string; text: string }[] }[];
+  answerOptions: { isCorrect: boolean; imageUrl?: string; translations: { languageCode: string; text: string }[] }[];
 }): Promise<Question> {
   return apiFetch<Question>(`/api/subjects/${subjectId}/questions`, {
     method: 'POST',
@@ -117,7 +149,7 @@ export function createQuestion(subjectId: number, data: {
 
 export function updateQuestion(subjectId: number, id: number, data: {
   translations: { languageCode: string; text: string }[];
-  answerOptions: { id: number; isCorrect: boolean; translations: { languageCode: string; text: string }[] }[];
+  answerOptions: { id: number; isCorrect: boolean; imageUrl?: string; translations: { languageCode: string; text: string }[] }[];
 }): Promise<Question> {
   return apiFetch<Question>(`/api/subjects/${subjectId}/questions/${id}`, {
     method: 'PATCH',

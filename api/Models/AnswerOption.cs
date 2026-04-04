@@ -5,6 +5,7 @@
     public Question Question { get; set; } = null!;
 
     public bool IsCorrect { get; set; }
+    public string? ImageUrl { get; set; }
 
     public ICollection<AnswerOptionTranslation> Translations { get; set; } = new List<AnswerOptionTranslation>();
 }

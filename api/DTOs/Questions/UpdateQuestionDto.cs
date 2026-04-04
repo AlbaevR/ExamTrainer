@@ -16,6 +16,7 @@ namespace api.DTOs.Questions
     {
         public int Id { get; set; }
         public bool IsCorrect { get; set; }
+        public string? ImageUrl { get; set; }
         public List<UpdateAnswerOptionTranslationDto> Translations { get; set; } = new();
     }
 

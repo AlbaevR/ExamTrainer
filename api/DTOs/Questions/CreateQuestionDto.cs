@@ -15,6 +15,7 @@ namespace api.DTOs.Questions
     public class CreateAnswerOptionDto
     {
         public bool IsCorrect { get; set; }
+        public string? ImageUrl { get; set; }
         public List<CreateAnswerOptionTranslationDto> Translations { get; set; } = new();
     }
 

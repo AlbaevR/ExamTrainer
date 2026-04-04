@@ -153,3 +153,52 @@
   align-items: center;
   gap: 0.5rem;
 }
+
+/* Image upload row inside an answer option */
+.aq-option-image-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed #e5e7eb;
+}
+
+.aq-option-image-label {
+  font-size: 0.8rem;
+  color: #6b7280;
+  font-weight: 500;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  cursor: pointer;
+}
+
+.aq-option-file-input {
+  font-size: 0.8rem;
+  color: #374151;
+  cursor: pointer;
+}
+
+/* Preview thumbnail in the form (max 80x80) */
+.aq-option-image-preview {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  flex-shrink: 0;
+}
+
+/* Inline thumbnail in the question list view (max 32x32) */
+.aq-answer-thumb {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  object-fit: cover;
+  border-radius: 4px;
+  vertical-align: middle;
+  margin-left: 0.5rem;
+  border: 1px solid #d1d5db;
+}

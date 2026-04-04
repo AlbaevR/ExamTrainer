@@ -7,6 +7,7 @@ export interface AnswerOption {
   id: number;
   text: string;
   isCorrect?: boolean; // For admin forms
+  imageUrl?: string;
 }
 
 export interface Question {
@@ -64,6 +65,7 @@ export interface SubjectWithTranslations {
 export interface AnswerOptionWithTranslations {
   id: number;
   isCorrect: boolean;
+  imageUrl?: string;
   translations: TranslationEntry[];
 }
 

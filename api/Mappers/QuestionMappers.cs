@@ -32,7 +32,8 @@ public static class QuestionMappers
         {
             var option = new AnswerOption
             {
-                IsCorrect = ao.IsCorrect
+                IsCorrect = ao.IsCorrect,
+                ImageUrl = ao.ImageUrl
             };
 
             foreach (var aot in ao.Translations)
@@ -71,7 +72,8 @@ public static class QuestionMappers
             var option = new AnswerOption
             {
                 Id = ao.Id,
-                IsCorrect = ao.IsCorrect
+                IsCorrect = ao.IsCorrect,
+                ImageUrl = ao.ImageUrl
             };
 
             foreach (var aot in ao.Translations)
@@ -98,7 +100,7 @@ public static class QuestionMappers
             .Select(a =>
             {
                 var at = a.Translations.FirstOrDefault(t => t.LanguageCode == languageCode) ?? a.Translations.FirstOrDefault();
-                return new AnswerOptionDto { Id = a.Id, Text = at?.Text ?? string.Empty, IsCorrect = a.IsCorrect };
+                return new AnswerOptionDto { Id = a.Id, Text = at?.Text ?? string.Empty, IsCorrect = a.IsCorrect, ImageUrl = a.ImageUrl };
             })
             .OrderBy(a => Guid.NewGuid())
             .ToList();
@@ -131,6 +133,7 @@ public static class QuestionMappers
             {
                 Id = a.Id,
                 IsCorrect = a.IsCorrect,
+                ImageUrl = a.ImageUrl,
                 Translations = a.Translations.Select(at => new QuestionTranslationDto
                 {
                     LanguageCode = at.LanguageCode,
