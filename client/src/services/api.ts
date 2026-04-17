@@ -73,7 +73,9 @@ import type {
   QuestionWithTranslations,
   ExamAttemptHistory,
   ExamAttemptDetail,
+  ExamFeedback,
 } from '../types';
+
 
 // --- Auth ---
 
@@ -190,3 +192,7 @@ export function getAttemptDetail(id: number, lang?: string): Promise<ExamAttempt
   return apiFetch<ExamAttemptDetail>(`/api/exam/attempts/${id}${query}`);
 }
 
+export function getExamFeedback(attemptId: number, lang?: string): Promise<ExamFeedback> {
+  const query = lang ? `?lang=${encodeURIComponent(lang)}` : '';
+  return apiFetch<ExamFeedback>(`/api/exam/attempts/${attemptId}/feedback${query}`);
+}

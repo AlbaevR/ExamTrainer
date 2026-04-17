@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using api.DTOs.Exams;
 using api.Mappers;
 using api.Repositories.Interfaces;
 using api.Models;
+using api.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace api.Controllers;
 
@@ -15,15 +17,18 @@ public class ExamController : ControllerBase
     private readonly IQuestionRepository _questionRepository;
     private readonly IExamAttemptRepository _examAttemptRepository;
     private readonly ISubjectRepository _subjectRepository;
+    private readonly IStatisticsService _statisticsService;
 
     public ExamController(
         IQuestionRepository questionRepository,
         IExamAttemptRepository examAttemptRepository,
-        ISubjectRepository subjectRepository)
+        ISubjectRepository subjectRepository,
+        IStatisticsService statisticsService)
     {
         _questionRepository = questionRepository;
         _examAttemptRepository = examAttemptRepository;
         _subjectRepository = subjectRepository;
+        _statisticsService = statisticsService;
     }
 
     // GET /api/exam/start/{subjectId}?lang=ru
@@ -151,5 +156,45 @@ public class ExamController : ControllerBase
         var dto = attempt.ToDetailDto(language);
 
         return Ok(dto);
+    }
+
+    // GET /api/exam/attempts/{id}/feedback?lang=ru
+    [HttpGet("attempts/{id}/feedback")]
+    [Authorize]
+    public async Task<IActionResult> GetExamFeedback(int id, [FromQuery] string? lang)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized();
+
+        var attempt = await _examAttemptRepository.GetByIdWithDetailsAsync(id);
+
+        if (attempt == null)
+            return NotFound(new { error = "Exam attempt not found." });
+
+        // Ensure user can only view their own attempts
+        if (attempt.UserId != userId)
+            return Forbid();
+
+        try
+        {
+            var language = lang ?? "ru";
+            var feedbackJson = await _statisticsService.GenerateExamFeedbackAsync(id, language);
+
+            // Normalize through the DTO to guarantee camelCase keys in the response,
+            // regardless of what was stored in the database.
+            var deserializeOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var feedbackObject = JsonSerializer.Deserialize<api.DTOs.Exams.ExamFeedbackDto>(feedbackJson, deserializeOptions);
+
+            return Ok(new {
+                attemptId = id,
+                feedback = feedbackObject,
+                generatedAt = attempt.AiFeedbackGeneratedAt
+            });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
     }
 }

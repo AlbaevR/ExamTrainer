@@ -9,13 +9,16 @@ interface ErrorMessageProps {
 export function ErrorMessage({ message, onRetry }: ErrorMessageProps) {
   const t = useT();
   return (
-    <div className="error-container">
-      <p className="error-text">⚠ {message}</p>
-      {onRetry && (
-        <button className="error-retry" onClick={onRetry}>
-          {t.tryAgain}
-        </button>
-      )}
+    <div className="error-message">
+      <span className="error-icon" aria-hidden="true">⚠️</span>
+      <div className="error-body">
+        <p className="error-text">{message}</p>
+        {onRetry && (
+          <button className="error-retry" onClick={onRetry}>
+            {t.tryAgain}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

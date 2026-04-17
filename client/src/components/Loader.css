@@ -1,24 +1,26 @@
-.loader-container {
+/* ===== LOADER ===== */
+.loader {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 3rem;
-  gap: 1rem;
-  color: #6b7280;
+  gap: var(--space-4);
+  padding: var(--space-16) var(--space-4);
+  min-height: 200px;
+  animation: fadeIn var(--transition-base);
 }
 
 .loader-spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid #e5e7eb;
-  border-top-color: #3b82f6;
+  width: 44px;
+  height: 44px;
+  border: 3px solid var(--color-primary-light);
+  border-top-color: var(--color-primary);
   border-radius: 50%;
-  animation: spin 0.7s linear infinite;
+  animation: spin 0.75s linear infinite;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+.loader-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  font-weight: 500;
 }

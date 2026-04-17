@@ -1,84 +1,181 @@
+/* ===== QUESTION CARD ===== */
 .question-card {
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 1.5rem;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  animation: slideUp var(--transition-base);
 }
 
+/* Header */
 .question-header {
-  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
 }
 
 .question-counter {
-  font-size: 0.8rem;
-  color: #6b7280;
-  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-3);
+  background: var(--color-primary-light);
+  color: var(--color-primary-dark);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  border-radius: var(--radius-full);
 }
 
+/* Question Text */
 .question-text {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #111827;
-  margin: 0 0 1.25rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--color-text);
   line-height: 1.5;
+  letter-spacing: -0.01em;
 }
 
+/* ===== OPTIONS ===== */
 .options-list {
   display: flex;
   flex-direction: column;
-  gap: 0.625rem;
+  gap: var(--space-3);
 }
 
+/* Option Row */
 .option-item {
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-bg);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+  min-height: 60px;
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast),
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast);
+  position: relative;
 }
 
 .option-item:hover {
-  background: #f9fafb;
-  border-color: #d1d5db;
+  border-color: var(--color-primary-mid);
+  background: var(--color-primary-light);
+  box-shadow: var(--shadow-sm);
+  transform: translateX(2px);
 }
 
 .option-item.selected {
-  background: #eff6ff;
-  border-color: #3b82f6;
+  border-color: var(--color-primary);
+  background: linear-gradient(135deg, var(--color-primary-light) 0%, rgba(187,222,251,0.4) 100%);
+  box-shadow: 0 0 0 3px rgba(33,150,243,0.12), var(--shadow-sm);
 }
 
-.option-item input[type='radio'] {
-  accent-color: #3b82f6;
-  width: 16px;
-  height: 16px;
-  margin: 0;
+/* Hidden native radio */
+.option-radio-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Custom radio dot */
+.option-radio-dot {
   flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-surface);
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.option-item.selected .option-radio-dot {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+}
+
+.option-radio-fill {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #fff;
+  animation: fadeIn 0.15s ease;
+}
+
+/* Letter index */
+.option-index {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary-light);
+  color: var(--color-primary-dark);
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.option-item.selected .option-index {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+/* Content (image + text) */
+.option-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.option-image {
+  width: 100%;
+  max-height: 200px;
+  object-fit: contain;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
 }
 
 .option-text {
-  color: #374151;
-  font-size: 0.95rem;
-  line-height: 1.4;
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  color: var(--color-text);
+  line-height: 1.5;
 }
 
-/* Image shown inside an answer option during the exam */
-.option-image {
-  display: block;
-  width: 100%;
-  max-height: 120px;
-  object-fit: contain;
-  border-radius: 6px;
-  margin-bottom: 0.25rem;
+.option-item.selected .option-text {
+  color: var(--color-primary-dark);
+  font-weight: 600;
 }
 
-/* Row holding the radio button and text */
-.option-item-row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
+/* ===== RESPONSIVE ===== */
+@media (max-width: 640px) {
+  .question-card {
+    padding: var(--space-5) var(--space-4);
+    gap: var(--space-5);
+  }
+
+  .question-text {
+    font-size: 1.05rem;
+  }
+
+  .option-item {
+    padding: var(--space-4);
+    gap: var(--space-3);
+  }
 }

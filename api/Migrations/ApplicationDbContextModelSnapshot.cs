@@ -377,6 +377,12 @@ namespace api.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AiFeedback")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("AiFeedbackGeneratedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("Score")
                         .HasColumnType("int");
 

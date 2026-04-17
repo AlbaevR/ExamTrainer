@@ -4,9 +4,9 @@ import './Loader.css';
 export function Loader() {
   const t = useT();
   return (
-    <div className="loader-container">
+    <div className="loader">
       <div className="loader-spinner" />
-      <p>{t.loading}</p>
+      <p className="loader-text">{t.loading}</p>
     </div>
   );
 }

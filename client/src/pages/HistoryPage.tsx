@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { getExamHistory } from '../services/api';
 import { useApi } from '../hooks/useApi';
 import { useAuth } from '../contexts/AuthContext';
@@ -56,8 +56,8 @@ export function HistoryPage() {
                 onKeyDown={(e) => e.key === 'Enter' && navigate(`/history/${attempt.id}`)}
               >
                 <div className="history-card-left">
-                  <span className={`history-badge ${passed ? 'pass' : 'fail'}`}>
-                    {passed ? '✓' : '✗'}
+                  <span className="history-badge">
+                    {attempt.score}
                   </span>
                   <div>
                     <p className="history-subject">{attempt.subjectName}</p>
@@ -68,9 +68,17 @@ export function HistoryPage() {
                   <span className="history-score">
                     {attempt.score}/{attempt.totalQuestions}
                   </span>
-                  <span className={`history-pct ${passed ? 'pass' : 'fail'}`}>
+                  <span className="history-pct">
                     {attempt.percentage}%
                   </span>
+                  <Link
+                    to={`/history/${attempt.id}/feedback`}
+                    className="history-ai-btn"
+                    onClick={(e) => e.stopPropagation()}
+                    title={t.viewAiFeedback}
+                  >
+                    ✨
+                  </Link>
                 </div>
               </div>
             );

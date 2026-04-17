@@ -17,6 +17,10 @@ public class ExamAttempt
 
     public DateTime TakenAt { get; set; }
 
+    public string? AiFeedback { get; set; }
+
+    public DateTime? AiFeedbackGeneratedAt { get; set; }
+
     public virtual Subject Subject { get; set; } = null!;
 
     public virtual ICollection<UserAnswer> UserAnswers { get; set; } = new List<UserAnswer>();

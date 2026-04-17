@@ -14,7 +14,7 @@ export function ExamPage() {
   const { subjectId } = useParams<{ subjectId: string }>();
   const navigate = useNavigate();
   const id = Number(subjectId);
-  
+
   const { lang } = useLanguage();
   const t = useT();
 
@@ -32,6 +32,11 @@ export function ExamPage() {
   const currentQuestion = questions[currentIndex];
   const isLast = currentIndex === questions.length - 1;
   const allAnswered = questions.every((q) => answers.has(q.id));
+
+  // Progress: percentage of questions answered
+  const progressPct = Math.round((answers.size / questions.length) * 100);
+  // Nav progress: current position
+  const positionPct = Math.round(((currentIndex + 1) / questions.length) * 100);
 
   function handleSelect(optionId: number) {
     setAnswers((prev) => {
@@ -67,13 +72,25 @@ export function ExamPage() {
 
   return (
     <div className="exam-page">
-      <div className="exam-header">
-        <h1>{exam.subjectName}</h1>
-        <span className="exam-progress">
-          {answers.size} / {questions.length} {t.answered}
-        </span>
+      {/* Progress Bar */}
+      <div className="exam-progress-bar-wrap" role="progressbar" aria-valuenow={progressPct} aria-valuemin={0} aria-valuemax={100}>
+        <div className="exam-progress-bar-track">
+          <div className="exam-progress-bar-fill" style={{ width: `${positionPct}%` }} />
+        </div>
+        <div className="exam-progress-meta">
+          <span className="exam-progress-label">
+            {currentIndex + 1} / {questions.length}
+          </span>
+          <span className="exam-progress-answered">
+            {answers.size} {t.answered}
+          </span>
+        </div>
       </div>
 
+      {/* Subject Title */}
+      <div className="exam-subject-label">{exam.subjectName}</div>
+
+      {/* Question */}
       <QuestionCard
         question={currentQuestion}
         questionNumber={currentIndex + 1}
@@ -84,6 +101,7 @@ export function ExamPage() {
 
       {submitError && <ErrorMessage message={submitError} />}
 
+      {/* Navigation */}
       <div className="exam-nav">
         <button
           className="btn btn-secondary"
@@ -92,6 +110,20 @@ export function ExamPage() {
         >
           {t.previous}
         </button>
+
+        {/* Question dot navigator */}
+        <div className="exam-dots" role="tablist" aria-label="Question navigation">
+          {questions.map((q, i) => (
+            <button
+              key={q.id}
+              role="tab"
+              aria-selected={i === currentIndex}
+              aria-label={`Question ${i + 1}`}
+              className={`exam-dot ${i === currentIndex ? 'active' : ''} ${answers.has(q.id) ? 'answered' : ''}`}
+              onClick={() => setCurrentIndex(i)}
+            />
+          ))}
+        </div>
 
         {isLast ? (
           <button

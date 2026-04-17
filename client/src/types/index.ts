@@ -107,3 +107,19 @@ export interface ExamAttemptDetail extends ExamAttemptHistory {
   answers: UserAnswerDetail[];
 }
 
+// AI Feedback
+export interface MistakeExplanation {
+  questionId: number;
+  explanation: string;
+}
+
+export interface FeedbackData {
+  mistakes: MistakeExplanation[];
+  studyRoadmap: string;
+}
+
+export interface ExamFeedback {
+  attemptId: number;
+  feedback: FeedbackData;
+  generatedAt: string;
+}

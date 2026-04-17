@@ -8,8 +8,47 @@ import { SubjectCard } from '../components/SubjectCard';
 import { Loader } from '../components/Loader';
 import { ErrorMessage } from '../components/ErrorMessage';
 import type { Subject, TranslationEntry } from '../types';
+import { getSubjectEmoji, setSubjectEmoji } from '../utils/subjectEmoji';
 import './SubjectsPage.css';
 
+// ─── Emoji Palette ────────────────────────────────────────────────────────────
+const EMOJI_OPTIONS = [
+  '📖', '🔬', '🏛️', '📐', '🌍', '💻', '🎨', '⚖️', '🏥', '🌱',
+  '🧪', '🔭', '🎭', '🎵', '🗺️', '🧮', '📊', '🧬', '⚗️', '🏫',
+  '✏️', '🖊️', '🔢', '🧲', '🌿', '🎓', '🏺', '🧭', '📜', '🔩',
+];
+
+interface EmojiPickerProps {
+  value: string;
+  onChange: (emoji: string) => void;
+}
+
+function EmojiPicker({ value, onChange }: EmojiPickerProps) {
+  return (
+    <div className="emoji-picker">
+      <label className="form-label">Subject Icon</label>
+      <div className="emoji-preview-row">
+        <span className="emoji-preview-current">{value}</span>
+        <span className="emoji-preview-hint">Pick an icon below</span>
+      </div>
+      <div className="emoji-grid">
+        {EMOJI_OPTIONS.map((emoji) => (
+          <button
+            key={emoji}
+            type="button"
+            className={`emoji-option ${value === emoji ? 'selected' : ''}`}
+            onClick={() => onChange(emoji)}
+            aria-label={emoji}
+          >
+            {emoji}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Subject Modal ────────────────────────────────────────────────────────────
 interface SubjectModalProps {
   isOpen: boolean;
   subjectId: number | null;
@@ -22,6 +61,7 @@ function SubjectModal({ isOpen, subjectId, onClose, onSaved }: SubjectModalProps
   const [ru, setRu] = useState('');
   const [ky, setKy] = useState('');
   const [en, setEn] = useState('');
+  const [emoji, setEmoji] = useState(EMOJI_OPTIONS[0]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,6 +69,8 @@ function SubjectModal({ isOpen, subjectId, onClose, onSaved }: SubjectModalProps
     if (isOpen) {
       if (subjectId) {
         setLoading(true);
+        // Pre-fill emoji from storage for existing subject
+        setEmoji(getSubjectEmoji(subjectId));
         getAdminSubject(subjectId).then(sub => {
           setRu(sub.translations.find(t => t.languageCode === 'ru')?.text || '');
           setKy(sub.translations.find(t => t.languageCode === 'ky')?.text || '');
@@ -42,6 +84,8 @@ function SubjectModal({ isOpen, subjectId, onClose, onSaved }: SubjectModalProps
         setRu('');
         setKy('');
         setEn('');
+        setEmoji(EMOJI_OPTIONS[0]);
+        setError(null);
       }
     }
   }, [isOpen, subjectId]);
@@ -71,8 +115,10 @@ function SubjectModal({ isOpen, subjectId, onClose, onSaved }: SubjectModalProps
     try {
       if (subjectId) {
         await updateSubject(subjectId, { translations: payload });
+        setSubjectEmoji(subjectId, emoji);
       } else {
-        await createSubject({ translations: payload });
+        const created = await createSubject({ translations: payload });
+        setSubjectEmoji(created.id, emoji);
       }
       onSaved();
       onClose();
@@ -85,11 +131,15 @@ function SubjectModal({ isOpen, subjectId, onClose, onSaved }: SubjectModalProps
 
   return (
     <div className="modal-overlay">
-      <div className="modal-content">
+      <div className="modal-content modal-content--wide">
         <h2>{subjectId ? t.editBtn : t.addBtn} Subject</h2>
         {error && <ErrorMessage message={error} />}
-        {loading && !subjectId ? <Loader /> : (
+        {loading && subjectId ? <Loader /> : (
           <form onSubmit={handleSubmit} className="admin-form">
+            <EmojiPicker value={emoji} onChange={setEmoji} />
+
+            <div className="modal-divider" />
+
             <div className="form-group">
               <label>Russian (Required)</label>
               <input value={ru} onChange={e => setRu(e.target.value)} required />
@@ -113,6 +163,7 @@ function SubjectModal({ isOpen, subjectId, onClose, onSaved }: SubjectModalProps
   );
 }
 
+// ─── Page ─────────────────────────────────────────────────────────────────────
 export function SubjectsPage() {
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
@@ -123,7 +174,6 @@ export function SubjectsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Modal state
   const [modalOpen, setModalOpen] = useState(false);
   const [editSubjectId, setEditSubjectId] = useState<number | null>(null);
 

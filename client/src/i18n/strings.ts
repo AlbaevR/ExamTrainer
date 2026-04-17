@@ -69,6 +69,20 @@ export interface I18nStrings {
   correctAnswer: string;
   date: string;
   loginToSeeHistory: string;
+
+  // AI Feedback
+  aiFeedback: string;
+  mistakes: string;
+  noMistakes: string;
+  studyRoadmap: string;
+  generatedAt: string;
+  viewAiFeedback: string;
+  aiFeedbackError: string;
+  aiFeedbackLoading: string;
+  congrats: string;
+  accessDenied: string;
+  retryBtn: string;
+  poweredByAi: string;
 }
 
 const strings: Record<LanguageCode, I18nStrings> = {
@@ -128,6 +142,18 @@ const strings: Record<LanguageCode, I18nStrings> = {
     correctAnswer: 'Правильный ответ',
     date: 'Дата',
     loginToSeeHistory: 'Войдите, чтобы просмотреть историю экзаменов.',
+    aiFeedback: 'AI-анализ экзамена',
+    mistakes: 'Ваши ошибки',
+    noMistakes: '🎉 Поздравляем! У вас нет ошибок.',
+    studyRoadmap: 'Дорожная карта обучения',
+    generatedAt: 'Сгенерировано',
+    viewAiFeedback: 'AI-анализ',
+    aiFeedbackError: 'Не удалось загрузить анализ. Попробуйте снова.',
+    aiFeedbackLoading: 'Генерация AI-анализа… Это может занять до 10 секунд.',
+    congrats: 'Отличная работа! Вы ответили правильно на все вопросы.',
+    accessDenied: 'Доступ запрещён.',
+    retryBtn: 'Повторить',
+    poweredByAi: 'Powered by AI',
   },
   ky: {
     appName: 'ГАК Тренажеру',
@@ -185,6 +211,18 @@ const strings: Record<LanguageCode, I18nStrings> = {
     correctAnswer: 'Туура жооп',
     date: 'Дата',
     loginToSeeHistory: 'Экзамен таrixын көрүү үчүн кириңиз.',
+    aiFeedback: 'AI экзамен анализи',
+    mistakes: 'Сиздин каталар',
+    noMistakes: '🎉 Куттуктайбыз! Каталар жок.',
+    studyRoadmap: 'Окуу жол картасы',
+    generatedAt: 'Түзүлгөн',
+    viewAiFeedback: 'AI-анализ',
+    aiFeedbackError: 'Анализди жүктөөгө болбоду. Кайра аракет кылыңыз.',
+    aiFeedbackLoading: 'AI анализи жаратылууда… Бул 10 секундга чейин созулушу мүмкүн.',
+    congrats: 'Мыкты иш! Бардык суроолорго туура жооп бердиңиз.',
+    accessDenied: 'Кирүүгө тыюу салынган.',
+    retryBtn: 'Кайра аракет',
+    poweredByAi: 'AI менен иштейт',
   },
   en: {
     appName: 'GAK Trainer',
@@ -242,6 +280,18 @@ const strings: Record<LanguageCode, I18nStrings> = {
     correctAnswer: 'Correct answer',
     date: 'Date',
     loginToSeeHistory: 'Please log in to view your exam history.',
+    aiFeedback: 'AI Exam Analysis',
+    mistakes: 'Your Mistakes',
+    noMistakes: '🎉 Congratulations! No mistakes found.',
+    studyRoadmap: 'Study Roadmap',
+    generatedAt: 'Generated',
+    viewAiFeedback: 'AI Analysis',
+    aiFeedbackError: 'Failed to load analysis. Please try again.',
+    aiFeedbackLoading: 'Generating AI analysis… This may take up to 10 seconds.',
+    congrats: 'Great job! You answered all questions correctly.',
+    accessDenied: 'Access denied.',
+    retryBtn: 'Retry',
+    poweredByAi: 'Powered by AI',
   }
 };
 

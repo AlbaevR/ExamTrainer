@@ -26,17 +26,19 @@ export function ResultPage() {
   }
 
   const { result, subjectName } = state;
-  const passed = result.percentage >= 70;
+  const isPerfect = result.percentage === 100;
 
   return (
     <div className="result-page">
       <div className="result-card">
-        <div className={`result-badge ${passed ? 'pass' : 'fail'}`}>
-          {passed ? t.passed : t.failed}
-        </div>
-
         <h1>{t.examResults}</h1>
         {subjectName && <p className="result-subject">{subjectName}</p>}
+
+        {isPerfect && (
+          <div className="result-congrats">
+            {t.congrats}
+          </div>
+        )}
 
         <div className="result-stats">
           <div className="stat">

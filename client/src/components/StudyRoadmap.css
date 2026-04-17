@@ -1,0 +1,63 @@
+/* ===== STUDY ROADMAP ===== */
+.study-roadmap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.roadmap-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.roadmap-icon {
+  font-size: 1.4rem;
+}
+
+.roadmap-title {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.roadmap-body {
+  position: relative;
+  padding-left: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.roadmap-body::before {
+  content: '';
+  position: absolute;
+  left: 12px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--color-primary), var(--color-primary-mid));
+  border-radius: var(--radius-full);
+}
+
+.roadmap-line {
+  position: relative;
+  padding: var(--space-2) 0 var(--space-2) var(--space-4);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  line-height: 1.7;
+}
+
+.roadmap-line::before {
+  content: '';
+  position: absolute;
+  left: calc(-1 * var(--space-8) + 8px);
+  top: 14px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  border: 2px solid var(--color-surface);
+  box-shadow: 0 0 0 2px var(--color-primary-mid);
+}

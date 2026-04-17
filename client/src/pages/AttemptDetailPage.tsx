@@ -39,14 +39,22 @@ export function AttemptDetailPage() {
   if (loading) return <Loader />;
   if (error || !attempt) return <ErrorMessage message={error || 'Failed to load attempt'} onRetry={reload} />;
 
-  const passed = attempt.percentage >= 70;
   const date = new Date(attempt.takenAt).toLocaleString();
 
   return (
     <div className="attempt-detail-page">
-      <button className="btn btn-secondary btn-sm mb-2" onClick={() => navigate('/history')}>
-        {t.back}
-      </button>
+      <div className="attempt-detail-top-bar">
+        <button className="btn btn-secondary btn-sm" onClick={() => navigate('/history')}>
+          {t.back}
+        </button>
+        <button
+          id="view-ai-feedback-btn"
+          className="btn btn-ai-sm"
+          onClick={() => navigate(`/history/${id}/feedback`)}
+        >
+          {t.viewAiFeedback}
+        </button>
+      </div>
 
       <div className="attempt-header">
         <div>
@@ -54,9 +62,6 @@ export function AttemptDetailPage() {
           <p className="attempt-subject">{attempt.subjectName}</p>
           <p className="attempt-date">{date}</p>
         </div>
-        <span className={`result-badge ${passed ? 'pass' : 'fail'}`}>
-          {passed ? t.passed : t.failed}
-        </span>
       </div>
 
       {/* Summary stats — same pattern as ResultPage */}

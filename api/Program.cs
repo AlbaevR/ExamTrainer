@@ -86,12 +86,18 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+// Register HttpClient for external API calls
+builder.Services.AddHttpClient();
+
 // Register repositories
 builder.Services.AddScoped<ISubjectRepository, SubjectRepository>();
 builder.Services.AddScoped<IQuestionRepository, QuestionRepository>();
 builder.Services.AddScoped<IExamAttemptRepository, ExamAttemptRepository>();
+
+// Register services
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IFileUploadService, FileUploadService>();
+builder.Services.AddScoped<IStatisticsService, StatisticsService>();
 
 var app = builder.Build();
 

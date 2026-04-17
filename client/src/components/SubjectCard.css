@@ -1,58 +1,126 @@
+/* ===== SUBJECT CARD CONTAINER ===== */
 .subject-card-container {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 0.5rem;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  gap: var(--space-3);
+  animation: slideUp var(--transition-base) both;
 }
 
-.subject-card-container:hover {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
+/* ===== SUBJECT CARD BUTTON ===== */
 .subject-card {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 0.75rem 0.75rem;
-  background: transparent;
-  border: none;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-lg);
   cursor: pointer;
-  font-size: 1rem;
+  width: 100%;
   text-align: left;
+  transition:
+    border-color var(--transition-base),
+    box-shadow var(--transition-base),
+    transform var(--transition-base);
+  min-height: 110px;
+  position: relative;
+  overflow: hidden;
+}
+
+.subject-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--color-primary-light) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity var(--transition-base);
+}
+
+.subject-card:hover {
+  border-color: var(--color-primary-mid);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-3px);
+}
+
+.subject-card:hover::before {
+  opacity: 1;
+}
+
+.subject-card:active {
+  transform: translateY(-1px);
+}
+
+/* Icon */
+.subject-card-icon {
+  font-size: 2.5rem;
+  line-height: 1;
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary-light);
+  border-radius: var(--radius-md);
+  position: relative;
+  z-index: 1;
+  transition: transform var(--transition-base);
+}
+
+.subject-card:hover .subject-card-icon {
+  transform: scale(1.08) rotate(-3deg);
+}
+
+/* Body */
+.subject-card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  position: relative;
+  z-index: 1;
 }
 
 .subject-name {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.3;
+}
+
+.subject-card-cta {
+  font-size: var(--font-size-sm);
+  color: var(--color-primary);
   font-weight: 500;
-  color: #111827;
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity var(--transition-base), transform var(--transition-base);
 }
 
-.subject-arrow {
-  color: #9ca3af;
-  font-size: 1.125rem;
+.subject-card:hover .subject-card-cta {
+  opacity: 1;
+  transform: translateX(0);
 }
 
-.subject-card:hover .subject-arrow {
-  color: #3b82f6;
+/* Arrow */
+.subject-card-arrow {
+  font-size: 1.25rem;
+  color: var(--color-primary);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+  transform: translateX(0);
+  transition: transform var(--transition-base);
 }
 
+.subject-card:hover .subject-card-arrow {
+  transform: translateX(4px);
+}
+
+/* ===== ADMIN ACTIONS ===== */
 .subject-admin-actions {
   display: flex;
-  gap: 0.5rem;
-  padding: 0 0.75rem 0.5rem;
-  justify-content: flex-end;
-}
-
-.btn-danger {
-  background: #ef4444;
-  color: white;
-}
-.btn-danger:hover {
-  background: #dc2626;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  padding: 0 var(--space-2);
 }

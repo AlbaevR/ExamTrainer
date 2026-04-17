@@ -28,37 +28,61 @@ export function QuestionCard({
   const t = useT();
 
   return (
-    <div className="question-card">
+    <div className="question-card" role="group" aria-labelledby={`question-${question.id}-text`}>
+      {/* Counter chip */}
       <div className="question-header">
         <span className="question-counter">
           {formatString(t.questionCount, questionNumber, totalQuestions)}
         </span>
       </div>
-      <h2 className="question-text">{question.text}</h2>
-      <div className="options-list">
-        {question.answers.map((option) => (
-          <label
-            key={option.id}
-            className={`option-item ${selectedOptionId === option.id ? 'selected' : ''}`}
-          >
-            {option.imageUrl && (
-              <img
-                src={resolveImageUrl(option.imageUrl)}
-                alt="option"
-                className="option-image"
-              />
-            )}
-            <span className="option-item-row">
+
+      {/* Question text */}
+      <h2 className="question-text" id={`question-${question.id}-text`}>
+        {question.text}
+      </h2>
+
+      {/* Options */}
+      <div className="options-list" role="radiogroup" aria-label="Answer options">
+        {question.answers.map((option, idx) => {
+          const isSelected = selectedOptionId === option.id;
+          return (
+            <label
+              key={option.id}
+              className={`option-item ${isSelected ? 'selected' : ''}`}
+              htmlFor={`opt-${question.id}-${option.id}`}
+            >
               <input
                 type="radio"
+                id={`opt-${question.id}-${option.id}`}
                 name={`question-${question.id}`}
-                checked={selectedOptionId === option.id}
+                checked={isSelected}
                 onChange={() => onSelectOption(option.id)}
+                className="option-radio-input"
               />
-              <span className="option-text">{option.text}</span>
-            </span>
-          </label>
-        ))}
+              {/* Custom radio dot */}
+              <span className="option-radio-dot" aria-hidden="true">
+                {isSelected && <span className="option-radio-fill" />}
+              </span>
+
+              {/* Option index letter (A, B, C, D…) */}
+              <span className="option-index" aria-hidden="true">
+                {String.fromCharCode(65 + idx)}
+              </span>
+
+              {/* Content */}
+              <span className="option-content">
+                {option.imageUrl && (
+                  <img
+                    src={resolveImageUrl(option.imageUrl)}
+                    alt={`Option ${String.fromCharCode(65 + idx)}`}
+                    className="option-image"
+                  />
+                )}
+                <span className="option-text">{option.text}</span>
+              </span>
+            </label>
+          );
+        })}
       </div>
     </div>
   );

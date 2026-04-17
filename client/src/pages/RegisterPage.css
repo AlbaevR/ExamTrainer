@@ -1,17 +1,2 @@
-/* Reuses LoginPage styles — same layout, nothing extra needed */
-.login-switch {
-  margin-top: 1rem;
-  text-align: center;
-  font-size: 0.875rem;
-  color: #666;
-}
-
-.login-switch a {
-  color: #4f46e5;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.login-switch a:hover {
-  text-decoration: underline;
-}
+/* RegisterPage shares the same styles as LoginPage.css */
+/* This file intentionally imports nothing — LoginPage.css defines .login-page and .login-card */

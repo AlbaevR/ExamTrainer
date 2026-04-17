@@ -1,3 +1,86 @@
+/* ===== DESIGN TOKENS ===== */
+:root {
+  /* Brand Palette */
+  --color-primary:        #2196F3;
+  --color-primary-dark:   #0D47A1;
+  --color-primary-light:  #E3F2FD;
+  --color-primary-mid:    #BBDEFB;
+  --color-primary-hover:  #1976D2;
+
+  /* Backgrounds */
+  --color-bg:             #F0F7FF;
+  --color-bg-admin:       #F8FAFC;
+  --color-surface:        #FFFFFF;
+  --color-surface-raised: #FFFFFF;
+
+  /* Text */
+  --color-text:           #0D1B2A;
+  --color-text-muted:     #64748B;
+  --color-text-light:     #94A3B8;
+  --color-text-on-primary:#FFFFFF;
+
+  /* Border */
+  --color-border:         #E2ECF7;
+  --color-border-focus:   #2196F3;
+
+  /* Semantic */
+  --color-success:        #22C55E;
+  --color-success-bg:     #F0FDF4;
+  --color-danger:         #EF4444;
+  --color-danger-bg:      #FEF2F2;
+  --color-warning:        #F59E0B;
+  --color-ai:             #7C3AED;
+  --color-ai-bg:          #F5F3FF;
+
+  /* Shadows */
+  --shadow-xs:   0 1px 2px rgba(33, 150, 243, 0.06);
+  --shadow-sm:   0 2px 8px rgba(33, 150, 243, 0.10);
+  --shadow-md:   0 4px 16px rgba(33, 150, 243, 0.14);
+  --shadow-lg:   0 8px 32px rgba(33, 150, 243, 0.18);
+  --shadow-xl:   0 16px 48px rgba(33, 150, 243, 0.22);
+
+  /* Border Radius */
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   16px;
+  --radius-xl:   24px;
+  --radius-full: 9999px;
+
+  /* Spacing scale */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* Typography */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-size-xs:   0.75rem;
+  --font-size-sm:   0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg:   1.125rem;
+  --font-size-xl:   1.25rem;
+  --font-size-2xl:  1.5rem;
+  --font-size-3xl:  1.875rem;
+  --font-size-4xl:  2.25rem;
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-base: 220ms ease;
+  --transition-slow: 350ms ease;
+
+  /* Layout */
+  --header-height: 64px;
+  --container-max: 1200px;
+  --content-max:   800px;
+}
+
+/* ===== RESET ===== */
 *,
 *::before,
 *::after {
@@ -6,14 +89,16 @@
   padding: 0;
 }
 
-:root {
-  font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
-    Arial, sans-serif;
-  font-size: 16px;
-  line-height: 1.6;
-  color: #111827;
-  background: #f9fafb;
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--font-size-base);
+  line-height: 1.65;
+  color: var(--color-text);
+  background: var(--color-bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -24,5 +109,222 @@ a {
 }
 
 button {
-  font-family: inherit;
+  font-family: var(--font-sans);
+  cursor: pointer;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-primary-light);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-primary-mid);
+  border-radius: var(--radius-full);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
+}
+
+/* ===== SELECTION ===== */
+::selection {
+  background: var(--color-primary-mid);
+  color: var(--color-primary-dark);
+}
+
+/* ===== FOCUS ===== */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ===== UTILITY ===== */
+.container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 var(--space-6);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--color-text-muted);
+  padding: var(--space-12) var(--space-4);
+  font-size: var(--font-size-lg);
+}
+
+/* ===== FORM ELEMENTS (shared) ===== */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.form-group label {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  letter-spacing: 0.01em;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-family: var(--font-sans);
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.15);
+}
+
+.form-group input::placeholder {
+  color: var(--color-text-light);
+}
+
+/* ===== MODAL OVERLAY ===== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(13, 27, 42, 0.45);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--space-4);
+  animation: fadeIn var(--transition-fast);
+}
+
+.modal-content {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8);
+  width: 100%;
+  max-width: 520px;
+  box-shadow: var(--shadow-xl);
+  animation: slideUp var(--transition-base);
+}
+
+.modal-content h2 {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  margin-bottom: var(--space-6);
+  color: var(--color-text);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+/* ===== ADMIN FORM ===== */
+.admin-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* ===== RESULT BADGE (shared) ===== */
+.result-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-5);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.result-badge.pass {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+  border: 1.5px solid #BBF7D0;
+}
+
+.result-badge.fail {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  border: 1.5px solid #FECACA;
+}
+
+/* ===== STAT BLOCK (shared) ===== */
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.stat-value {
+  font-size: var(--font-size-3xl);
+  font-weight: 800;
+  color: var(--color-primary-dark);
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
