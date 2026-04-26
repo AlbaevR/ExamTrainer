@@ -1,3 +1,4 @@
+import ReactMarkdown from 'react-markdown';
 import type { MistakeExplanation } from '../types';
 import './MistakeCard.css';
 
@@ -12,7 +13,9 @@ export function MistakeCard({ mistake, index }: MistakeCardProps) {
       <div className="mistake-index">
         Question #{mistake.questionId}
       </div>
-      <p className="mistake-explanation">{mistake.explanation}</p>
+      <div className="mistake-explanation mistake-markdown">
+        <ReactMarkdown>{mistake.explanation}</ReactMarkdown>
+      </div>
     </div>
   );
 }

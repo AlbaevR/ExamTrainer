@@ -87,5 +87,21 @@ namespace api.Repositories.Implementations
             await _context.SaveChangesAsync();
             return true;
         }
+        
+        public async Task<(IEnumerable<Question>, int)> GetPagedBySubjectIdAsync(
+            int subjectId, int page, int pageSize)
+        {
+            var query = _context.Questions.Where(q => q.SubjectId == subjectId);
+            var total = await query.CountAsync();
+            var items = await query
+                .OrderBy(q => q.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Include(q => q.Translations)
+                .Include(q => q.AnswerOptions).ThenInclude(a => a.Translations)
+                .ToListAsync();
+            return (items, total);
+        }
+
     }
 }

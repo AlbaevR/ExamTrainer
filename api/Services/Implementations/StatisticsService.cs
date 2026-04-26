@@ -28,7 +28,7 @@ namespace api.Services.Implementations
             _httpClientFactory = httpClientFactory;
         }
 
-        public async Task<string> GenerateExamFeedbackAsync(int attemptId, string languageCode = "ru")
+        public async Task<string> GenerateExamFeedbackAsync(int attemptId, string languageCode = "ru", bool force = false)
         {
             // Fetch the exam attempt with all necessary details
             var examAttempt = await _examAttemptRepository.GetByIdWithDetailsAsync(attemptId);
@@ -38,8 +38,8 @@ namespace api.Services.Implementations
                 throw new Exception($"Exam attempt with ID {attemptId} not found.");
             }
 
-            // Check if feedback already exists
-            if (!string.IsNullOrEmpty(examAttempt.AiFeedback))
+            // Check if feedback already exists (skip if force-refresh requested)
+            if (!force && !string.IsNullOrEmpty(examAttempt.AiFeedback))
             {
                 return examAttempt.AiFeedback;
             }
@@ -71,17 +71,17 @@ namespace api.Services.Implementations
                 return feedbackJson;
             }
 
-            // Build the prompt for Gemini
+            // Build the prompt for Groq
             var prompt = BuildPrompt(incorrectAnswers, languageCode);
 
-            // Call Gemini API
-            var apiKey = _configuration["Gemini:ApiKey"];
+            // Call Groq API
+            var apiKey = _configuration["Groq:ApiKey"];
             if (string.IsNullOrEmpty(apiKey))
             {
-                throw new Exception("Gemini API key is not configured.");
+                throw new Exception("Groq API key is not configured.");
             }
 
-            var geminiResponse = await CallGeminiApiAsync(prompt, apiKey);
+            var geminiResponse = await CallGroqApiAsync(prompt, apiKey);
 
             // Store the feedback
             examAttempt.AiFeedback = geminiResponse;
@@ -99,7 +99,10 @@ namespace api.Services.Implementations
             {
                 sb.AppendLine("Студент имтихан тапшырды жана кээ бир каталарды кетирди.");
                 sb.AppendLine("Ар бир ката үчүн 1-3 сүйлөм чамасында кыска түшүндүрмө бер.");
-                sb.AppendLine("Окуу жол картасы үчүн 3-5 пункт жаз.");
+                sb.AppendLine("\"Академиялык устат сыяктуу иш-аракет кылыңыз. 3-5 логикалык кадамдан турган изилдөө планын жазыңыз." +
+                              " Ар бир кадамдан кийин, эгерде студенттин кемчиликтери болсо, терең изилдөө үчүн белгилүү бир темаларды белгилеген" +
+                              " \"Эмнеге көңүл буруу керек\" бөлүмүн кошуңуз.\n\nМисал: Эгерде студент Моголстандын негизделген күнүн билбесе," +
+                              " анда ал 14-кылымдагы Чагатай улусунун саясий кризисин изилдеши керек.\n\nҮн: Кесипкөй, структураланган. \"");
                 sb.AppendLine();
                 sb.AppendLine("Каталар:");
             }
@@ -107,7 +110,10 @@ namespace api.Services.Implementations
             {
                 sb.AppendLine("Студент сдал экзамен и допустил некоторые ошибки.");
                 sb.AppendLine("Для каждой ошибки дай краткое объяснение в 1-3 предложения.");
-                sb.AppendLine("Для учебной дорожной карты напиши 3-5 пунктов.");
+                sb.AppendLine("Действуй как академический наставник. Напиши дорожную карту исследования из 3-5 логических этапов." +
+                              " После каждого этапа добавь блок \"На что обратить внимание\", где распиши конкретные темы для глубокого изучения, если у студента есть пробелы." +
+                              "\n\nПример: Если студент не знает дату основания Моголистана, ему нужно изучить политический кризис в Чагатайском улусе в XIV веке.\n\n" +
+                              "Тон: профессиональный, структурированный.");
                 sb.AppendLine();
                 sb.AppendLine("Ошибки:");
             }
@@ -146,11 +152,11 @@ namespace api.Services.Implementations
             sb.AppendLine();
             if (languageCode == "ky")
             {
-                sb.AppendLine("JSON форматында жооп бериңиз. studyRoadmap маани жай строк болуу керек, тизме эмес жок.");
+                sb.AppendLine("Жооп төмөндөгү JSON форматында берилет. explanation жана studyRoadmap талааларында маркдаун колдонсоңуз болот.");
             }
             else
             {
-                sb.AppendLine("Отвечайте в формате JSON. studyRoadmap должна быть одной строкой, не массивом.");
+                sb.AppendLine("Ответ верни строго в следующем JSON-формате. В полях explanation и studyRoadmap можно использовать маркдаун.");
             }
 
             sb.AppendLine(@"{
@@ -160,110 +166,76 @@ namespace api.Services.Implementations
       ""explanation"": ""<краткое объяснение в 1-3 предложения>""
     }
   ],
-  ""studyRoadmap"": ""1. ... 2. ... 3. ...""
+  ""studyRoadmap"": ""<дорожная карта>""
 }");
 
             return sb.ToString();
         }
 
-        private async Task<string> CallGeminiApiAsync(string prompt, string apiKey)
+        private async Task<string> CallGroqApiAsync(string prompt, string apiKey)
         {
             var httpClient = _httpClientFactory.CreateClient();
 
             var requestBody = new
             {
-                contents = new[]
+                model = "meta-llama/llama-4-scout-17b-16e-instruct",
+                messages = new[]
                 {
-                    new
-                    {
-                        parts = new[]
-                        {
-                            new { text = prompt }
-                        }
-                    }
+                    new { role = "user", content = prompt }
                 },
-                generationConfig = new
-                {
-                    temperature = 0.7,
-                    maxOutputTokens = 8192
-                }
+                temperature = 0.7,
+                max_tokens = 8192,
+                response_format = new { type = "json_object" }
             };
 
             var requestJson = JsonSerializer.Serialize(requestBody);
             var content = new StringContent(requestJson, Encoding.UTF8, "application/json");
 
-            // Gemini API URL with API key as query parameter
-            var url = $"https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key={apiKey}";
+            var url = "https://api.groq.com/openai/v1/chat/completions";
+
+            httpClient.DefaultRequestHeaders.Clear();
+            httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
 
             var response = await httpClient.PostAsync(url, content);
 
             if (!response.IsSuccessStatusCode)
             {
                 var errorContent = await response.Content.ReadAsStringAsync();
-                throw new Exception($"Gemini API request failed: {response.StatusCode} - {errorContent}");
+                throw new Exception($"Groq API request failed: {response.StatusCode} - {errorContent}");
             }
 
             var responseJson = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"Groq API Response: {responseJson}");
 
-            // Log the raw response for debugging
-            Console.WriteLine($"Gemini API Response: {responseJson}");
-
-            var geminiResponse = JsonSerializer.Deserialize<GeminiApiResponse>(responseJson, new JsonSerializerOptions
+            var groqResponse = JsonSerializer.Deserialize<GroqApiResponse>(responseJson, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             });
 
-            if (geminiResponse?.Candidates == null || geminiResponse.Candidates.Length == 0)
-            {
-                throw new Exception($"Gemini API returned empty response. Raw response: {responseJson}");
-            }
+            if (groqResponse?.Choices == null || groqResponse.Choices.Length == 0)
+                throw new Exception($"Groq API returned empty response. Raw: {responseJson}");
 
-            if (geminiResponse.Candidates[0]?.Content?.Parts == null || geminiResponse.Candidates[0].Content.Parts.Length == 0)
-            {
-                throw new Exception($"Gemini response has no content parts. Raw response: {responseJson}");
-            }
+            var textContent = groqResponse.Choices[0].Message.Content.Trim();
 
-            // Extract the text content from Gemini's response
-            var textContent = geminiResponse.Candidates[0].Content.Parts[0].Text;
-
-            // Remove markdown code block markers if present (```json ... ```)
-            textContent = textContent.Trim();
+            // Strip ```json ... ``` fences if the model adds them anyway
             if (textContent.StartsWith("```"))
             {
-                // Remove the first line (```json or ```)
                 var firstNewline = textContent.IndexOf('\n');
-                if (firstNewline > 0)
-                {
-                    textContent = textContent.Substring(firstNewline + 1);
-                }
-
-                // Remove the last line (```)
-                var lastBackticks = textContent.LastIndexOf("```");
-                if (lastBackticks > 0)
-                {
-                    textContent = textContent.Substring(0, lastBackticks);
-                }
+                if (firstNewline > 0) textContent = textContent[(firstNewline + 1)..];
+                var lastFence = textContent.LastIndexOf("```");
+                if (lastFence > 0) textContent = textContent[..lastFence];
+                textContent = textContent.Trim();
             }
 
-            textContent = textContent.Trim();
+            // Normalize studyRoadmap array → string if the model returns a list
+            textContent = NormalizeStudyRoadmap(textContent);
 
-            // Normalize studyRoadmap from array → string if Gemini returned a list
-            textContent = PreprocessGeminiJson(textContent);
-
-            // Validate that it's valid JSON and normalize to camelCase for the frontend
             try
             {
-                var deserializeOptions = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                };
-                var feedback = JsonSerializer.Deserialize<ExamFeedbackDto>(textContent, deserializeOptions);
-                if (feedback == null)
-                {
-                    throw new Exception("Failed to deserialize feedback.");
-                }
+                var deserializeOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var feedback = JsonSerializer.Deserialize<ExamFeedbackDto>(textContent, deserializeOptions)
+                    ?? throw new Exception("Failed to deserialize feedback.");
 
-                // Re-serialize with camelCase so keys match the frontend TypeScript types
                 var serializeOptions = new JsonSerializerOptions
                 {
                     WriteIndented = true,
@@ -273,13 +245,11 @@ namespace api.Services.Implementations
             }
             catch (JsonException ex)
             {
-                throw new Exception($"Gemini API returned invalid JSON response. Error: {ex.Message}. Content: {textContent}");
+                throw new Exception($"Groq API returned invalid JSON. Error: {ex.Message}. Content: {textContent}");
             }
         }
 
-        // If Gemini returned studyRoadmap as a JSON array instead of a string,
-        // join the items into a single numbered string so deserialization succeeds.
-        private static string PreprocessGeminiJson(string json)
+        private static string NormalizeStudyRoadmap(string json)
         {
             try
             {
@@ -288,46 +258,69 @@ namespace api.Services.Implementations
 
                 if (!root.TryGetProperty("studyRoadmap", out var roadmapEl)
                     || roadmapEl.ValueKind != JsonValueKind.Array)
+                    return json;
+
+                var sb = new StringBuilder();
+                int stageIndex = 0;
+
+                foreach (var el in roadmapEl.EnumerateArray())
                 {
-                    return json; // already a string — nothing to fix
+                    stageIndex++;
+
+                    if (el.ValueKind == JsonValueKind.String)
+                    {
+                        // Simple array of strings: "1. Step one"
+                        sb.AppendLine($"{stageIndex}. {el.GetString()}");
+                    }
+                    else if (el.ValueKind == JsonValueKind.Object)
+                    {
+                        // Structured object: { stage, description, attention[] }
+                        var stage = el.TryGetProperty("stage", out var s) ? s.GetString() ?? "" : "";
+                        var desc = el.TryGetProperty("description", out var d) ? d.GetString() ?? "" : "";
+
+                        sb.AppendLine($"### {stageIndex}. {stage}");
+                        if (!string.IsNullOrWhiteSpace(desc))
+                            sb.AppendLine(desc);
+
+                        if (el.TryGetProperty("attention", out var attention)
+                            && attention.ValueKind == JsonValueKind.Array)
+                        {
+                            sb.AppendLine();
+                            sb.AppendLine("**На что обратить внимание:**");
+                            foreach (var item in attention.EnumerateArray())
+                            {
+                                var text = item.ValueKind == JsonValueKind.String
+                                    ? item.GetString()
+                                    : item.ToString();
+                                sb.AppendLine($"- {text}");
+                            }
+                        }
+
+                        sb.AppendLine();
+                    }
                 }
 
-                // Join array items into a numbered string
-                var lines = roadmapEl.EnumerateArray()
-                    .Select((el, i) => $"{i + 1}. {el.GetString() ?? string.Empty}")
-                    .ToArray();
-                var roadmapStr = string.Join(" ", lines);
-
-                // Rebuild JSON preserving mistakes as-is
                 var mistakesRaw = root.GetProperty("mistakes").GetRawText();
-                var escapedRoadmap = JsonSerializer.Serialize(roadmapStr);
+                var escapedRoadmap = JsonSerializer.Serialize(sb.ToString().Trim());
                 return $"{{\"mistakes\":{mistakesRaw},\"studyRoadmap\":{escapedRoadmap}}}";
             }
-            catch
-            {
-                return json; // return original if anything goes wrong
-            }
+            catch { return json; }
         }
 
-        // Helper classes for Gemini API
-        private class GeminiApiResponse
+        // Groq response shape (OpenAI-compatible)
+        private class GroqApiResponse
         {
-            public Candidate[] Candidates { get; set; } = Array.Empty<Candidate>();
+            public GroqChoice[] Choices { get; set; } = Array.Empty<GroqChoice>();
         }
 
-        private class Candidate
+        private class GroqChoice
         {
-            public Content Content { get; set; } = new Content();
+            public GroqMessage Message { get; set; } = new GroqMessage();
         }
 
-        private class Content
+        private class GroqMessage
         {
-            public Part[] Parts { get; set; } = Array.Empty<Part>();
-        }
-
-        private class Part
-        {
-            public string Text { get; set; } = string.Empty;
+            public string Content { get; set; } = string.Empty;
         }
     }
 }

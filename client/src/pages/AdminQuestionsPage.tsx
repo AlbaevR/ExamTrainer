@@ -57,6 +57,8 @@ function revokeOptionPreviews(opts: OptionInput[]) {
   });
 }
 
+const PAGE_SIZE = 20;
+
 export function AdminQuestionsPage() {
   const { subjectId } = useParams<{ subjectId: string }>();
   const navigate = useNavigate();
@@ -65,7 +67,16 @@ export function AdminQuestionsPage() {
   const t = useT();
   const id = Number(subjectId);
 
-  const { data: questions, loading, error, reload } = useApi(() => getAdminQuestions(id, lang), [id, lang]);
+  const [page, setPage] = useState(1);
+
+  const { data: pagedData, loading, error, reload } = useApi(
+    () => getAdminQuestions(id, lang, page, PAGE_SIZE),
+    [id, lang, page],
+  );
+
+  const questions = pagedData?.items ?? [];
+  const totalCount = pagedData?.totalCount ?? 0;
+  const totalPages = pagedData?.totalPages ?? 1;
 
   const [isEditing, setIsEditing] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -138,7 +149,9 @@ export function AdminQuestionsPage() {
     try {
       setActionError(null);
       await deleteQuestion(id, qId);
-      reload();
+      // If we just deleted the last item on the current page, go back one
+      if (questions.length === 1 && page > 1) setPage(p => p - 1);
+      else reload();
     } catch (err: any) {
       setActionError(err.message || 'Failed to delete question');
     }
@@ -249,6 +262,8 @@ export function AdminQuestionsPage() {
           })),
         });
       }
+      // After create reset to page 1 so the new question is visible
+      setPage(1);
       reload();
       resetForm();
     } catch (err: any) {
@@ -264,7 +279,7 @@ export function AdminQuestionsPage() {
         <div>
           <button className="btn btn-secondary btn-sm mb-2" onClick={() => navigate('/')}>{t.back}</button>
           <h1>Manage Questions</h1>
-          <p className="aq-subtitle">Total Questions: {questions.length}</p>
+          <p className="aq-subtitle">Total Questions: {totalCount}</p>
         </div>
         {!showForm && <button className="btn btn-primary" onClick={startAdd}>+ Add Question</button>}
       </div>
@@ -379,30 +394,62 @@ export function AdminQuestionsPage() {
       )}
 
       {!showForm && (
-        <div className="aq-list">
-          {questions.map((q, idx) => (
-            <div key={q.id} className="aq-card">
-              <div className="aq-card-header">
-                <strong>Q{idx + 1}. {q.text}</strong>
-                <div className="aq-card-actions">
-                  <button className="btn btn-secondary btn-sm" onClick={() => startEdit(q.id)}>{t.editBtn}</button>
-                  <button className="btn btn-danger btn-sm" onClick={() => handleDelete(q.id)}>{t.deleteBtn}</button>
+        <>
+          <div className="aq-list">
+            {questions.map((q, idx) => (
+              <div key={q.id} className="aq-card">
+                <div className="aq-card-header">
+                  <strong>Q{(page - 1) * PAGE_SIZE + idx + 1}. {q.text}</strong>
+                  <div className="aq-card-actions">
+                    <button className="btn btn-secondary btn-sm" onClick={() => startEdit(q.id)}>{t.editBtn}</button>
+                    <button className="btn btn-danger btn-sm" onClick={() => handleDelete(q.id)}>{t.deleteBtn}</button>
+                  </div>
                 </div>
+                <ul className="aq-answers">
+                  {q.answers.map(a => (
+                    <li key={a.id} className={a.isCorrect ? 'aq-correct' : ''}>
+                      {a.isCorrect ? '✓ ' : '○ '}{a.text}
+                      {a.imageUrl && (
+                        <img src={resolveImageUrl(a.imageUrl)} alt="answer option" className="aq-answer-thumb" />
+                      )}
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <ul className="aq-answers">
-                {q.answers.map(a => (
-                  <li key={a.id} className={a.isCorrect ? 'aq-correct' : ''}>
-                    {a.isCorrect ? '✓ ' : '○ '}{a.text}
-                    {a.imageUrl && (
-                      <img src={resolveImageUrl(a.imageUrl)} alt="answer option" className="aq-answer-thumb" />
-                    )}
-                  </li>
-                ))}
-              </ul>
+            ))}
+            {questions.length === 0 && <p className="empty-state">No questions found.</p>}
+          </div>
+
+          {totalPages > 1 && (
+            <div className="aq-pagination">
+              <button
+                className="btn btn-secondary btn-sm"
+                onClick={() => setPage(p => p - 1)}
+                disabled={page <= 1}
+              >
+                ← Prev
+              </button>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                <button
+                  key={p}
+                  className={`btn btn-sm ${p === page ? 'btn-primary' : 'btn-secondary'}`}
+                  onClick={() => setPage(p)}
+                >
+                  {p}
+                </button>
+              ))}
+
+              <button
+                className="btn btn-secondary btn-sm"
+                onClick={() => setPage(p => p + 1)}
+                disabled={page >= totalPages}
+              >
+                Next →
+              </button>
             </div>
-          ))}
-          {questions.length === 0 && <p className="empty-state">No questions found.</p>}
-        </div>
+          )}
+        </>
       )}
     </div>
   );

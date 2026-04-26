@@ -44,7 +44,6 @@ export function HistoryPage() {
       ) : (
         <div className="history-list">
           {attempts.map((attempt) => {
-            const passed = attempt.percentage >= 70;
             const date = new Date(attempt.takenAt).toLocaleString();
             return (
               <div

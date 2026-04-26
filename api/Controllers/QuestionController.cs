@@ -19,21 +19,29 @@ public class QuestionController : ControllerBase
 
     // GET /api/subjects/{subjectId}/questions
     [HttpGet]
-    public async Task<IActionResult> GetQuestions(int subjectId, [FromQuery] string? lang)
+    [HttpGet]
+    public async Task<IActionResult> GetQuestions(
+        int subjectId,
+        [FromQuery] string? lang,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20)
     {
-        var questions = await _questionRepository.GetBySubjectIdAsync(subjectId);
-        
-        if (string.IsNullOrWhiteSpace(lang))
-        {
-            var dtos = questions.Select(q => q.ToQuestionDto()).ToList();
-            return Ok(dtos);
-        }
-        else
-        {
-            var dtos = questions.Select(q => q.ToLocalizedQuestionResponseDto(lang)).ToList();
-            return Ok(dtos);
-        }
+        var (questions, total) = await _questionRepository
+            .GetPagedBySubjectIdAsync(subjectId, page, pageSize);
+
+        var dtos = string.IsNullOrWhiteSpace(lang)
+            ? questions.Select(q => q.ToQuestionDto())
+            : questions.Select(q => q.ToLocalizedQuestionResponseDto(lang));
+
+        return Ok(new {
+            items = dtos,
+            totalCount = total,
+            page,
+            pageSize,
+            totalPages = (int)Math.Ceiling((double)total / pageSize)
+        });
     }
+
 
     // GET /api/subjects/{subjectId}/questions/{id}/admin
     [HttpGet("{id}/admin")]
@@ -53,7 +61,7 @@ public class QuestionController : ControllerBase
     // POST /api/subjects/{subjectId}/questions
     // POST /api/subjects/{subjectId}/questions
     [HttpPost]
-    [Authorize(Roles = "Admin")]
+
     public async Task<IActionResult> CreateQuestion(int subjectId, [FromBody] CreateQuestionDto dto)
     {
         if (dto == null)

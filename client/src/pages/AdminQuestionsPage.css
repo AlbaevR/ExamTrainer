@@ -282,6 +282,16 @@
   border: 1px solid var(--color-border);
 }
 
+/* ===== PAGINATION ===== */
+.aq-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  padding-top: var(--space-4);
+}
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 640px) {
   .aq-form-card {

@@ -158,10 +158,10 @@ public class ExamController : ControllerBase
         return Ok(dto);
     }
 
-    // GET /api/exam/attempts/{id}/feedback?lang=ru
+    // GET /api/exam/attempts/{id}/feedback?lang=ru&force=false
     [HttpGet("attempts/{id}/feedback")]
     [Authorize]
-    public async Task<IActionResult> GetExamFeedback(int id, [FromQuery] string? lang)
+    public async Task<IActionResult> GetExamFeedback(int id, [FromQuery] string? lang, [FromQuery] bool force = false)
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userId))
@@ -179,7 +179,7 @@ public class ExamController : ControllerBase
         try
         {
             var language = lang ?? "ru";
-            var feedbackJson = await _statisticsService.GenerateExamFeedbackAsync(id, language);
+            var feedbackJson = await _statisticsService.GenerateExamFeedbackAsync(id, language, force);
 
             // Normalize through the DTO to guarantee camelCase keys in the response,
             // regardless of what was stored in the database.

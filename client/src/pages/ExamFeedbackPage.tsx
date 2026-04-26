@@ -38,10 +38,10 @@ export function ExamFeedbackPage() {
   // Cache per lang to avoid re-fetching the same language twice
   const cache = useRef<Map<string, ExamFeedback>>(new Map());
 
-  async function loadFeedback() {
+  async function loadFeedback(force = false) {
     if (!token) return;
     const cacheKey = `${attemptId}-${lang}`;
-    if (cache.current.has(cacheKey)) {
+    if (!force && cache.current.has(cacheKey)) {
       setFeedback(cache.current.get(cacheKey)!);
       setFetched(true);
       return;
@@ -49,7 +49,7 @@ export function ExamFeedbackPage() {
     setLoading(true);
     setError(null);
     try {
-      const result = await getExamFeedback(attemptId, lang === 'en' ? 'ru' : lang);
+      const result = await getExamFeedback(attemptId, lang === 'en' ? 'ru' : lang, force);
       cache.current.set(cacheKey, result);
       setFeedback(result);
       setFetched(true);
@@ -190,7 +190,7 @@ export function ExamFeedbackPage() {
               cache.current.delete(cacheKey);
               setFetched(false);
               setFeedback(null);
-              loadFeedback();
+              loadFeedback(true);
             }}
           >
             🔄{' '}

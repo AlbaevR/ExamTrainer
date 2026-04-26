@@ -61,19 +61,20 @@ async function apiFetchMultipart<T>(path: string, body: FormData): Promise<T> {
   return text ? JSON.parse(text) : ({} as T);
 }
 
-import type { 
-  Subject, 
-  ExamStart, 
-  SubmitExamRequest, 
-  ExamResult, 
-  LoginResponse, 
-  Question, 
+import type {
+  Subject,
+  ExamStart,
+  SubmitExamRequest,
+  ExamResult,
+  LoginResponse,
+  Question,
   RegisterRequest,
   SubjectWithTranslations,
   QuestionWithTranslations,
   ExamAttemptHistory,
   ExamAttemptDetail,
   ExamFeedback,
+  PagedResult,
 } from '../types';
 
 
@@ -126,9 +127,17 @@ export function deleteSubject(id: number): Promise<void> {
 
 // --- Questions ---
 
-export function getAdminQuestions(subjectId: number, lang?: string): Promise<Question[]> {
-  const query = lang ? `?lang=${encodeURIComponent(lang)}` : '';
-  return apiFetch<Question[]>(`/api/subjects/${subjectId}/questions${query}`);
+export function getAdminQuestions(
+  subjectId: number,
+  lang?: string,
+  page = 1,
+  pageSize = 20,
+): Promise<PagedResult<Question>> {
+  const params = new URLSearchParams();
+  if (lang) params.set('lang', lang);
+  params.set('page', String(page));
+  params.set('pageSize', String(pageSize));
+  return apiFetch<PagedResult<Question>>(`/api/subjects/${subjectId}/questions?${params}`);
 }
 
 export function getAdminQuestion(subjectId: number, id: number): Promise<QuestionWithTranslations> {
@@ -192,7 +201,10 @@ export function getAttemptDetail(id: number, lang?: string): Promise<ExamAttempt
   return apiFetch<ExamAttemptDetail>(`/api/exam/attempts/${id}${query}`);
 }
 
-export function getExamFeedback(attemptId: number, lang?: string): Promise<ExamFeedback> {
-  const query = lang ? `?lang=${encodeURIComponent(lang)}` : '';
+export function getExamFeedback(attemptId: number, lang?: string, force = false): Promise<ExamFeedback> {
+  const params = new URLSearchParams();
+  if (lang) params.set('lang', lang);
+  if (force) params.set('force', 'true');
+  const query = params.toString() ? `?${params.toString()}` : '';
   return apiFetch<ExamFeedback>(`/api/exam/attempts/${attemptId}/feedback${query}`);
 }
