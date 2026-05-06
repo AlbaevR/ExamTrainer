@@ -84,6 +84,7 @@ export function AdminQuestionsPage() {
   const [formText, setFormText] = useState<TranslationForm>(emptyTranslations());
   const [formOptions, setFormOptions] = useState<OptionInput[]>([]);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [warningMessage, setWarningMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   if (!isAdmin) {
@@ -207,22 +208,30 @@ export function AdminQuestionsPage() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!formText.ru.trim() || !formText.ky.trim()) {
-      setActionError('Russian and Kyrgyz question text are required.');
+
+    // At least one question translation must be filled
+    const hasQuestionText = formText.ru.trim() || formText.ky.trim() || formText.en.trim();
+    if (!hasQuestionText) {
+      setWarningMessage('Please provide at least one translation for the question text (RU, KY, or EN).');
       return;
     }
+
     if (formOptions.length < 2) {
-      setActionError('At least 2 options are required.');
+      setWarningMessage('At least 2 answer options are required.');
       return;
     }
-    for (const opt of formOptions) {
-      if (!opt.text.ru.trim() || !opt.text.ky.trim()) {
-        setActionError('Russian and Kyrgyz text are required for all answer options.');
+
+    // Each answer option needs at least one translation
+    for (let i = 0; i < formOptions.length; i++) {
+      const opt = formOptions[i];
+      if (!opt.text.ru.trim() && !opt.text.ky.trim() && !opt.text.en.trim()) {
+        setWarningMessage(`Answer option ${i + 1} needs at least one translation (RU, KY, or EN).`);
         return;
       }
     }
+
     if (!formOptions.some(o => o.isCorrect)) {
-      setActionError('At least one option must be correct.');
+      setWarningMessage('Please mark at least one answer option as correct.');
       return;
     }
 
@@ -275,6 +284,17 @@ export function AdminQuestionsPage() {
 
   return (
     <div className="admin-questions-page">
+
+      {/* ── Warning popup modal ── */}
+      {warningMessage && (
+        <div className="aq-warning-overlay" onClick={() => setWarningMessage(null)}>
+          <div className="aq-warning-modal" onClick={e => e.stopPropagation()}>
+            <span className="aq-warning-icon">⚠️</span>
+            <p className="aq-warning-text">{warningMessage}</p>
+            <button className="btn btn-primary btn-sm" onClick={() => setWarningMessage(null)}>OK</button>
+          </div>
+        </div>
+      )}
       <div className="aq-header">
         <div>
           <button className="btn btn-secondary btn-sm mb-2" onClick={() => navigate('/')}>{t.back}</button>
@@ -287,18 +307,18 @@ export function AdminQuestionsPage() {
       {actionError && <ErrorMessage message={actionError} onRetry={() => setActionError(null)} />}
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="aq-form-card">
+        <form onSubmit={handleSubmit} className="aq-form-card" noValidate>
           <h2>{isEditing ? 'Edit Question' : 'Add Question'}</h2>
 
           {loadingForm ? <Loader /> : (
             <>
               <div className="form-group lang-group">
-                <label>Question Text (RU) *</label>
-                <input type="text" value={formText.ru} onChange={e => setFormText({...formText, ru: e.target.value})} required />
-                <label>Question Text (KY) *</label>
-                <input type="text" value={formText.ky} onChange={e => setFormText({...formText, ky: e.target.value})} required />
+                <label>Question Text (RU)</label>
+                <input type="text" value={formText.ru} onChange={e => setFormText({ ...formText, ru: e.target.value })} />
+                <label>Question Text (KY)</label>
+                <input type="text" value={formText.ky} onChange={e => setFormText({ ...formText, ky: e.target.value })} />
                 <label>Question Text (EN)</label>
-                <input type="text" value={formText.en} onChange={e => setFormText({...formText, en: e.target.value})} />
+                <input type="text" value={formText.en} onChange={e => setFormText({ ...formText, en: e.target.value })} />
               </div>
 
               <div className="aq-options-list">
@@ -329,16 +349,16 @@ export function AdminQuestionsPage() {
                       >Delete</button>
                     </div>
 
-                    <input type="text" placeholder="RU *" value={opt.text.ru} onChange={e => {
+                    <input type="text" placeholder="RU" value={opt.text.ru} onChange={e => {
                       const next = [...formOptions];
                       next[i].text.ru = e.target.value;
                       setFormOptions(next);
-                    }} required />
-                    <input type="text" placeholder="KY *" value={opt.text.ky} onChange={e => {
+                    }} />
+                    <input type="text" placeholder="KY" value={opt.text.ky} onChange={e => {
                       const next = [...formOptions];
                       next[i].text.ky = e.target.value;
                       setFormOptions(next);
-                    }} required />
+                    }} />
                     <input type="text" placeholder="EN" value={opt.text.en} onChange={e => {
                       const next = [...formOptions];
                       next[i].text.en = e.target.value;

@@ -35,6 +35,9 @@ export interface I18nStrings {
   total: string;
   score: string;
   backToSubjects: string;
+  retakeExam: string;
+  myAttempts: string;
+  getAiFeedback: string;
 
   // LoginPage & RegisterPage
   welcomeBack: string;
@@ -83,16 +86,18 @@ export interface I18nStrings {
   accessDenied: string;
   retryBtn: string;
   poweredByAi: string;
+  motto: string;
 }
 
 const strings: Record<LanguageCode, I18nStrings> = {
   ru: {
-    appName: 'ГАК Тренажер',
+    appName: 'Dayardan',
     login: 'Войти',
     logout: 'Выйти',
     hi: 'Привет',
     chooseSubject: 'Выберите предмет',
     chooseSubjectSubtitle: 'Выберите предмет для начала экзамена.',
+    motto: "Sunrise, Parabellum",
     addBtn: '+ Добавить',
     editBtn: 'Изменить',
     manageQsBtn: 'Вопросы',
@@ -114,6 +119,9 @@ const strings: Record<LanguageCode, I18nStrings> = {
     total: 'Всего',
     score: 'Балл',
     backToSubjects: 'Вернуться к предметам',
+    retakeExam: 'Пройти снова',
+    myAttempts: 'Мои попытки',
+    getAiFeedback: 'AI-анализ ошибок',
     welcomeBack: 'С возвращением',
     signInAccount: 'Войдите в свой аккаунт',
     username: 'Имя пользователя',
@@ -144,7 +152,7 @@ const strings: Record<LanguageCode, I18nStrings> = {
     loginToSeeHistory: 'Войдите, чтобы просмотреть историю экзаменов.',
     aiFeedback: 'AI-анализ экзамена',
     mistakes: 'Ваши ошибки',
-    noMistakes: '🎉 Поздравляем! У вас нет ошибок.',
+    noMistakes: 'Поздравляем! У вас нет ошибок.',
     studyRoadmap: 'Дорожная карта обучения',
     generatedAt: 'Сгенерировано',
     viewAiFeedback: 'AI-анализ',
@@ -156,7 +164,7 @@ const strings: Record<LanguageCode, I18nStrings> = {
     poweredByAi: 'Powered by AI',
   },
   ky: {
-    appName: 'ГАК Тренажеру',
+    appName: 'Dayardan',
     login: 'Кирүү',
     logout: 'Чыгуу',
     hi: 'Салам',
@@ -165,6 +173,7 @@ const strings: Record<LanguageCode, I18nStrings> = {
     addBtn: '+ Кошуу',
     editBtn: 'Өзгөртүү',
     manageQsBtn: 'Суроолор',
+    motto: "Sunrise, Parabellum",
     deleteBtn: 'Өчүрүү',
     noSubjects: 'Жеткиликтүү предметтер жок.',
     questionCount: 'Суроо {0} / {1}',
@@ -183,6 +192,9 @@ const strings: Record<LanguageCode, I18nStrings> = {
     total: 'Жалпы',
     score: 'Балл',
     backToSubjects: 'Предметтерге кайтуу',
+    retakeExam: 'Кайра тапшыруу',
+    myAttempts: 'Менин аракеттерим',
+    getAiFeedback: 'AI катаны талдоо',
     welcomeBack: 'Кайрадан салам',
     signInAccount: 'Аккаунтуңузга кириңиз',
     username: 'Колдонуучунун аты',
@@ -213,7 +225,7 @@ const strings: Record<LanguageCode, I18nStrings> = {
     loginToSeeHistory: 'Экзамен таrixын көрүү үчүн кириңиз.',
     aiFeedback: 'AI экзамен анализи',
     mistakes: 'Сиздин каталар',
-    noMistakes: '🎉 Куттуктайбыз! Каталар жок.',
+    noMistakes: 'Куттуктайбыз! Каталар жок.',
     studyRoadmap: 'Окуу жол картасы',
     generatedAt: 'Түзүлгөн',
     viewAiFeedback: 'AI-анализ',
@@ -225,9 +237,10 @@ const strings: Record<LanguageCode, I18nStrings> = {
     poweredByAi: 'AI менен иштейт',
   },
   en: {
-    appName: 'GAK Trainer',
+    appName: 'Dayardan',
     login: 'Login',
     logout: 'Logout',
+    motto: "Sunrise, Parabellum",
     hi: 'Hi',
     chooseSubject: 'Choose a Subject',
     chooseSubjectSubtitle: 'Select a subject to start your exam.',
@@ -252,6 +265,9 @@ const strings: Record<LanguageCode, I18nStrings> = {
     total: 'Total',
     score: 'Score',
     backToSubjects: 'Back to Subjects',
+    retakeExam: 'Retake Exam',
+    myAttempts: 'My Attempts',
+    getAiFeedback: 'Get AI Feedback',
     welcomeBack: 'Welcome Back',
     signInAccount: 'Sign in to your account',
     username: 'Username',
@@ -282,7 +298,7 @@ const strings: Record<LanguageCode, I18nStrings> = {
     loginToSeeHistory: 'Please log in to view your exam history.',
     aiFeedback: 'AI Exam Analysis',
     mistakes: 'Your Mistakes',
-    noMistakes: '🎉 Congratulations! No mistakes found.',
+    noMistakes: 'Congratulations! No mistakes found.',
     studyRoadmap: 'Study Roadmap',
     generatedAt: 'Generated',
     viewAiFeedback: 'AI Analysis',

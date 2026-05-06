@@ -22,6 +22,25 @@ export interface ExamStart {
   questions: Question[];
 }
 
+export interface MultilingualAnswerOption {
+  id: number;
+  translations: Record<string, string>;
+  isCorrect: boolean;
+  imageUrl?: string;
+}
+
+export interface MultilingualQuestion {
+  id: number;
+  translations: Record<string, string>;
+  answers: MultilingualAnswerOption[];
+}
+
+export interface MultilingualExamStart {
+  subjectId: number;
+  subjectNames: Record<string, string>;
+  questions: MultilingualQuestion[];
+}
+
 export interface SubmittedAnswer {
   questionId: number;
   selectedAnswerOptionId: number;
@@ -34,6 +53,7 @@ export interface SubmitExamRequest {
 }
 
 export interface ExamResult {
+  attemptId: number;
   score: number;
   totalQuestions: number;
   percentage: number;
@@ -122,4 +142,12 @@ export interface ExamFeedback {
   attemptId: number;
   feedback: FeedbackData;
   generatedAt: string;
+}
+
+export interface PagedResult<T> {
+  items: T[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
 }

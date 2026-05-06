@@ -75,6 +75,7 @@ import type {
   ExamAttemptDetail,
   ExamFeedback,
   PagedResult,
+  MultilingualExamStart,
 } from '../types';
 
 
@@ -178,10 +179,8 @@ export function deleteQuestion(subjectId: number, id: number): Promise<void> {
 
 // --- Exam ---
 
-export function startExam(subjectId: number, lang?: string): Promise<ExamStart> {
-  const query = lang ? `?lang=${encodeURIComponent(lang)}` : '';
-  // Correct endpoint: GET /api/exam/start/{subjectId}
-  return apiFetch<ExamStart>(`/api/exam/start/${subjectId}${query}`);
+export function startExam(subjectId: number): Promise<MultilingualExamStart> {
+  return apiFetch<MultilingualExamStart>(`/api/exam/start/${subjectId}`);
 }
 
 export function submitExam(request: SubmitExamRequest): Promise<ExamResult> {

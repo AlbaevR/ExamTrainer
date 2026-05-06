@@ -1,6 +1,7 @@
 using System.Linq;
 using api.Models;
 using api.DTOs.Questions;
+using api.DTOs.Exams;
 
 namespace api.Mappers;
 
@@ -140,6 +141,31 @@ public static class QuestionMappers
                     Text = at.Text
                 }).ToList()
             }).ToList()
+        };
+    }
+
+    /// <summary>
+    /// Maps a question to a multilingual DTO containing all translations keyed by language code.
+    /// Answer options are shuffled once here so the order stays stable across language switches.
+    /// </summary>
+    public static MultilingualQuestionDto ToMultilingualQuestionDto(this Question question)
+    {
+        var answers = question.AnswerOptions
+            .OrderBy(_ => Guid.NewGuid())   // shuffle once, order is stable in the DTO
+            .Select(a => new MultilingualAnswerOptionDto
+            {
+                Id = a.Id,
+                IsCorrect = a.IsCorrect,
+                ImageUrl = a.ImageUrl,
+                Translations = a.Translations.ToDictionary(t => t.LanguageCode, t => t.Text)
+            })
+            .ToList();
+
+        return new MultilingualQuestionDto
+        {
+            Id = question.Id,
+            Translations = question.Translations.ToDictionary(t => t.LanguageCode, t => t.Text),
+            Answers = answers
         };
     }
 }

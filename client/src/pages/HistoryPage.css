@@ -1,6 +1,6 @@
 /* ===== HISTORY PAGE ===== */
 .history-page {
-  max-width: 760px;
+  max-width: 1140px;
   margin: 0 auto;
   animation: fadeIn var(--transition-base);
 }
@@ -13,14 +13,184 @@
   margin-bottom: var(--space-6);
 }
 
-/* List */
+/* ── Two-column layout ── */
+.history-layout {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: var(--space-6);
+  align-items: start;
+}
+
+/* ===== LEFT: VERTICAL BAR CHARTS ===== */
+.history-charts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  position: sticky;
+  top: calc(var(--header-height, 64px) + var(--space-4));
+}
+
+.vchart-card {
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5) var(--space-5) var(--space-4);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  transition: box-shadow var(--transition-fast), border-color var(--transition-fast);
+}
+
+.vchart-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-primary-mid);
+}
+
+/* Header */
+.vchart-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.vchart-title {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.4;
+}
+
+.vchart-pills {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.vchart-pill {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+
+.vchart-pill--best {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.vchart-pill--avg {
+  background: var(--color-primary-light);
+  color: var(--color-primary-dark);
+}
+
+/* Chart area: y-axis + bars side by side */
+.vchart-area {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-2);
+  height: 160px;
+}
+
+/* Y-axis */
+.vchart-yaxis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  padding-bottom: 20px; /* align with bar bottom (label area) */
+}
+
+.vchart-yaxis span {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  line-height: 1;
+}
+
+/* Bars container */
+.vchart-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  flex: 1;
+  height: 100%;
+}
+
+/* Single bar column */
+.vchart-bar-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  cursor: pointer;
+  gap: 3px;
+  transition: opacity var(--transition-fast);
+}
+
+.vchart-bar-col:hover {
+  opacity: 0.75;
+}
+
+.vchart-bar-value {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--color-text);
+  white-space: nowrap;
+  line-height: 1;
+}
+
+/* The track is the full 100% height anchored at the bottom */
+.vchart-bar-track {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  background: var(--color-bg);
+  border-radius: 4px 4px 0 0;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-bottom: none;
+  min-height: 0;
+}
+
+/* The colored fill grows from the bottom */
+.vchart-bar-fill {
+  width: 100%;
+  height: var(--bar-h, 0%);
+  background: var(--bar-color, #3b82f6);
+  border-radius: 3px 3px 0 0;
+  animation: barRise 0.55s cubic-bezier(0.25, 1, 0.5, 1) both;
+  transform-origin: bottom;
+}
+
+@keyframes barRise {
+  from { height: 0%; }
+  to   { height: var(--bar-h, 0%); }
+}
+
+.vchart-bar-label {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  line-height: 1;
+  height: 14px;
+}
+
+/* ===== RIGHT: ATTEMPTS LIST ===== */
 .history-list {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
 }
 
-/* Card */
 .history-card {
   display: flex;
   align-items: center;
@@ -56,7 +226,6 @@
   transform: translateX(2px);
 }
 
-/* Left side */
 .history-card-left {
   display: flex;
   align-items: center;
@@ -79,8 +248,6 @@
   color: var(--color-primary-dark);
 }
 
-
-
 .history-subject {
   font-size: var(--font-size-base);
   font-weight: 600;
@@ -96,7 +263,6 @@
   margin-top: 2px;
 }
 
-/* Right side */
 .history-card-right {
   display: flex;
   align-items: center;
@@ -119,7 +285,6 @@
   background: var(--color-primary-light);
 }
 
-/* AI link */
 .history-ai-btn {
   display: flex;
   align-items: center;
@@ -139,7 +304,23 @@
 }
 
 /* ===== RESPONSIVE ===== */
-@media (max-width: 600px) {
+@media (max-width: 860px) {
+  .history-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .history-charts {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .vchart-card {
+    flex: 1 1 280px;
+  }
+}
+
+@media (max-width: 520px) {
   .history-card {
     flex-direction: column;
     align-items: flex-start;

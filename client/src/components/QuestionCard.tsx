@@ -9,6 +9,8 @@ interface QuestionCardProps {
   totalQuestions: number;
   selectedOptionId: number | null;
   onSelectOption: (optionId: number) => void;
+  /** When true, show correct/incorrect highlights and lock inputs */
+  revealed?: boolean;
 }
 
 /** Prefix relative server paths (/uploads/...) with the API origin */
@@ -24,6 +26,7 @@ export function QuestionCard({
   totalQuestions,
   selectedOptionId,
   onSelectOption,
+  revealed = false,
 }: QuestionCardProps) {
   const t = useT();
 
@@ -45,10 +48,24 @@ export function QuestionCard({
       <div className="options-list" role="radiogroup" aria-label="Answer options">
         {question.answers.map((option, idx) => {
           const isSelected = selectedOptionId === option.id;
+          const isCorrect = option.isCorrect === true;
+
+          // Determine CSS state classes
+          let stateClass = '';
+          if (revealed) {
+            if (isCorrect) {
+              stateClass = 'correct';
+            } else if (isSelected && !isCorrect) {
+              stateClass = 'incorrect';
+            }
+          } else if (isSelected) {
+            stateClass = 'selected';
+          }
+
           return (
             <label
               key={option.id}
-              className={`option-item ${isSelected ? 'selected' : ''}`}
+              className={`option-item ${stateClass}`}
               htmlFor={`opt-${question.id}-${option.id}`}
             >
               <input
@@ -56,7 +73,8 @@ export function QuestionCard({
                 id={`opt-${question.id}-${option.id}`}
                 name={`question-${question.id}`}
                 checked={isSelected}
-                onChange={() => onSelectOption(option.id)}
+                onChange={() => !revealed && onSelectOption(option.id)}
+                disabled={revealed}
                 className="option-radio-input"
               />
               {/* Custom radio dot */}

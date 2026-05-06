@@ -1,11 +1,13 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { ExamResult } from '../types';
 import { useT } from '../i18n/strings';
+import { useAuth } from '../contexts/AuthContext';
 import './ResultPage.css';
 
 interface ResultState {
   result: ExamResult;
   subjectName: string;
+  subjectId: number;
 }
 
 export function ResultPage() {
@@ -13,6 +15,8 @@ export function ResultPage() {
   const navigate = useNavigate();
   const state = location.state as ResultState | null;
   const t = useT();
+  const { token } = useAuth();
+  const isLoggedIn = !!token;
 
   if (!state) {
     return (
@@ -25,7 +29,7 @@ export function ResultPage() {
     );
   }
 
-  const { result, subjectName } = state;
+  const { result, subjectName, subjectId } = state;
   const isPerfect = result.percentage === 100;
 
   return (
@@ -56,7 +60,22 @@ export function ResultPage() {
         </div>
 
         <div className="result-actions">
-          <button className="btn btn-primary" onClick={() => navigate('/')}>
+          {subjectId && (
+            <button className="btn btn-primary" onClick={() => navigate(`/exam/${subjectId}`)}>
+              {t.retakeExam}
+            </button>
+          )}
+          {isLoggedIn && result.attemptId && (
+            <button className="btn btn-secondary" onClick={() => navigate(`/history/${result.attemptId}/feedback`)}>
+              {t.getAiFeedback}
+            </button>
+          )}
+          {isLoggedIn && (
+            <button className="btn btn-secondary" onClick={() => navigate('/history')}>
+              {t.myAttempts}
+            </button>
+          )}
+          <button className="btn btn-ghost" onClick={() => navigate('/')}>
             {t.backToSubjects}
           </button>
         </div>

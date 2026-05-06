@@ -65,7 +65,7 @@ export function ExamFeedbackPage() {
     return (
       <div className="feedback-page">
         <div className="feedback-denied">
-          <span className="feedback-denied-icon">🔒</span>
+          <span className="feedback-denied-icon"></span>
           <p>{t.loginToSeeHistory}</p>
           <button className="btn btn-primary" onClick={() => navigate('/login')}>
             {t.login}
@@ -95,7 +95,7 @@ export function ExamFeedbackPage() {
       {/* Initial CTA — before any fetch */}
       {!fetched && !loading && !error && (
         <div className="feedback-cta">
-          <div className="feedback-cta-illustration" aria-hidden="true">🤖</div>
+          <div className="feedback-cta-illustration" aria-hidden="true"></div>
           <p className="feedback-cta-desc">
             {lang === 'ru' && 'AI проанализирует ваши ошибки и даст персональные рекомендации по обучению.'}
             {lang === 'ky' && 'AI сиздин каталарыңызды талдап, жекелештирилген окуу сунуштарын берет.'}
@@ -104,7 +104,7 @@ export function ExamFeedbackPage() {
           <button
             id="generate-feedback-btn"
             className="btn btn-ai"
-            onClick={loadFeedback}
+            onClick={() => loadFeedback()}
           >
             ✨ {t.viewAiFeedback}
           </button>
@@ -129,11 +129,11 @@ export function ExamFeedbackPage() {
       {/* Error state */}
       {error && !loading && (
         <div className="feedback-error">
-          <span className="feedback-error-icon">⚠️</span>
+          <span className="feedback-error-icon"></span>
           <p className="feedback-error-text">{t.aiFeedbackError}</p>
           <p className="feedback-error-detail">{error}</p>
-          <button className="btn btn-primary" onClick={loadFeedback}>
-            🔄 {t.retryBtn}
+          <button className="btn btn-primary" onClick={() => loadFeedback()}>
+            {t.retryBtn}
           </button>
         </div>
       )}
@@ -175,7 +175,7 @@ export function ExamFeedbackPage() {
 
           {/* Generated at timestamp */}
           <p className="feedback-generated-at">
-            🕒 {t.generatedAt}: {timeAgo(feedback.generatedAt)}{' '}
+            {t.generatedAt}: {timeAgo(feedback.generatedAt)}{' '}
             <span className="feedback-generated-exact">
               ({new Date(feedback.generatedAt).toLocaleString()})
             </span>
@@ -193,7 +193,6 @@ export function ExamFeedbackPage() {
               loadFeedback(true);
             }}
           >
-            🔄{' '}
             {lang === 'ru' && 'Обновить анализ'}
             {lang === 'ky' && 'Анализди жаңыртуу'}
             {lang === 'en' && 'Refresh Analysis'}

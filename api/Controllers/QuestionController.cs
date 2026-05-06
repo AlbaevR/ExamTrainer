@@ -59,13 +59,23 @@ public class QuestionController : ControllerBase
     }
 
     // POST /api/subjects/{subjectId}/questions
-    // POST /api/subjects/{subjectId}/questions
     [HttpPost]
-
     public async Task<IActionResult> CreateQuestion(int subjectId, [FromBody] CreateQuestionDto dto)
     {
         if (dto == null)
-            return BadRequest();
+            return BadRequest("Request body is required.");
+
+        // At least one non-empty question translation required
+        if (!dto.Translations.Any(t => !string.IsNullOrWhiteSpace(t.Text)))
+            return BadRequest("At least one question translation is required.");
+
+        // At least one non-empty translation required per answer option
+        for (int i = 0; i < dto.AnswerOptions.Count; i++)
+        {
+            var opt = dto.AnswerOptions[i];
+            if (!opt.Translations.Any(t => !string.IsNullOrWhiteSpace(t.Text)))
+                return BadRequest($"Answer option {i + 1} requires at least one translation.");
+        }
 
         var question = dto.ToQuestionEntity(subjectId);
         var created = await _questionRepository.CreateAsync(question);

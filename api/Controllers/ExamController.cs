@@ -31,29 +31,27 @@ public class ExamController : ControllerBase
         _statisticsService = statisticsService;
     }
 
-    // GET /api/exam/start/{subjectId}?lang=ru
+    // GET /api/exam/start/{subjectId}
     [HttpGet("start/{subjectId}")]
-    public async Task<IActionResult> StartExam(int subjectId, [FromQuery] string? lang)
+    public async Task<IActionResult> StartExam(int subjectId)
     {
         var subject = await _subjectRepository.GetByIdAsync(subjectId);
         if (subject == null)
             return NotFound("Subject not found.");
-
-        var language = lang ?? string.Empty;
 
         var questions = (await _questionRepository.GetBySubjectIdAsync(subjectId))
             .OrderBy(q => Guid.NewGuid())
             .Take(30)
             .ToList();
 
-        var questionDtos = questions.Select(q => q.ToLocalizedQuestionResponseDto(language)).ToList();
+        if (questions.Count == 0)
+            return NotFound("This subject has no questions yet.");
 
-        var result = new ExamStartDto
+        var result = new ExamStartMultilingualDto
         {
             SubjectId = subject.Id,
-            SubjectName = subject.Translations.FirstOrDefault(t => t.LanguageCode == language)?.Name
-                ?? subject.Translations.FirstOrDefault()?.Name ?? string.Empty,
-            Questions = questionDtos
+            SubjectNames = subject.Translations.ToDictionary(t => t.LanguageCode, t => t.Name),
+            Questions = questions.Select(q => q.ToMultilingualQuestionDto()).ToList()
         };
 
         return Ok(result);
@@ -109,6 +107,7 @@ public class ExamController : ControllerBase
 
         var result = new ExamResultDto
         {
+            AttemptId = attempt.Id,
             Score = score,
             TotalQuestions = request.Answers.Count,
             Percentage = Math.Round((double)score / request.Answers.Count * 100, 2)

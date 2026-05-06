@@ -60,7 +60,7 @@ export function Layout({ children }: LayoutProps) {
         <div className="header-inner">
           {/* Logo */}
           <Link to="/" className="header-logo" onClick={() => setMenuOpen(false)}>
-            <span className="header-logo-text">ExamTrainer</span>
+            <span className="header-logo-text">Dayardan</span>
             {isAdmin && (
               <span className="staff-badge">Staff</span>
             )}
@@ -115,7 +115,7 @@ export function Layout({ children }: LayoutProps) {
         <div className="mobile-drawer-header">
           <span className="mobile-drawer-title">
             {isAdmin && <span className="staff-badge">Staff</span>}
-            ExamTrainer
+            Dayardan
           </span>
           <button className="mobile-close" onClick={() => setMenuOpen(false)} aria-label="Close menu">✕</button>
         </div>
@@ -150,20 +150,20 @@ export function Layout({ children }: LayoutProps) {
       <footer className="site-footer">
         <div className="footer-inner">
           <div className="footer-brand">
-            <span className="footer-logo">ExamTrainer</span>
+            <span className="footer-logo">Dayardan</span>
             <p className="footer-tagline">
-              {t.chooseSubjectSubtitle}
+              {t.motto}
             </p>
           </div>
           <div className="footer-links">
             <Link to="/" className="footer-link">{t.chooseSubject}</Link>
             <Link to="/history" className="footer-link">{t.myHistory}</Link>
-            <a href="mailto:admin@examtrainer.app" className="footer-link">
-              Contact Admin
+            <a href="mailto:ruslanalbaev2@gmail.com" className="footer-link">
+              Contact: ruslanalbaev2@gmail.com
             </a>
           </div>
           <p className="footer-copy">
-            © {new Date().getFullYear()} ExamTrainer. All rights reserved.
+            © {new Date().getFullYear()} Dayardan. All rights reserved.
           </p>
         </div>
       </footer>

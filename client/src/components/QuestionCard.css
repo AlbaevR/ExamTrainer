@@ -78,6 +78,28 @@
   box-shadow: 0 0 0 3px rgba(33,150,243,0.12), var(--shadow-sm);
 }
 
+/* ===== REVEALED STATES ===== */
+.option-item.correct {
+  border-color: #2e7d32;
+  background: linear-gradient(135deg, #e8f5e9 0%, rgba(200,230,201,0.4) 100%);
+  box-shadow: 0 0 0 3px rgba(46,125,50,0.12), var(--shadow-sm);
+  cursor: default;
+}
+
+.option-item.incorrect {
+  border-color: #c62828;
+  background: linear-gradient(135deg, #ffebee 0%, rgba(255,205,210,0.4) 100%);
+  box-shadow: 0 0 0 3px rgba(198,40,40,0.12), var(--shadow-sm);
+  cursor: default;
+}
+
+/* Non-highlighted options when revealed should not be interactive */
+.option-item:not(.correct):not(.incorrect).option-item[disabled],
+.option-item:has(input:disabled):not(.correct):not(.incorrect) {
+  cursor: default;
+  opacity: 0.65;
+}
+
 /* Hidden native radio */
 .option-radio-input {
   position: absolute;
@@ -106,6 +128,16 @@
   background: var(--color-primary);
 }
 
+.option-item.correct .option-radio-dot {
+  border-color: #2e7d32;
+  background: #2e7d32;
+}
+
+.option-item.incorrect .option-radio-dot {
+  border-color: #c62828;
+  background: #c62828;
+}
+
 .option-radio-fill {
   width: 10px;
   height: 10px;
@@ -132,6 +164,16 @@
 
 .option-item.selected .option-index {
   background: var(--color-primary);
+  color: #fff;
+}
+
+.option-item.correct .option-index {
+  background: #2e7d32;
+  color: #fff;
+}
+
+.option-item.incorrect .option-index {
+  background: #c62828;
   color: #fff;
 }
 
