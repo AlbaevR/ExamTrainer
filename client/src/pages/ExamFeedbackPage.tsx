@@ -9,6 +9,39 @@ import { StudyRoadmap } from '../components/StudyRoadmap';
 import type { ExamFeedback } from '../types';
 import './ExamFeedbackPage.css';
 
+const DAILY_LIMIT = 3;
+
+function rlKey(username: string) {
+  return `feedback_rl_${username}`;
+}
+
+function getTodayRequests(username: string): number[] {
+  try {
+    const raw = localStorage.getItem(rlKey(username));
+    const all: number[] = raw ? JSON.parse(raw) : [];
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    return all.filter(ts => ts >= startOfDay.getTime());
+  } catch {
+    return [];
+  }
+}
+
+function recordRequest(username: string): void {
+  try {
+    const todayTs = getTodayRequests(username);
+    todayTs.push(Date.now());
+    localStorage.setItem(rlKey(username), JSON.stringify(todayTs));
+  } catch { /* ignore */ }
+}
+
+function minutesUntilMidnight(): number {
+  const now = new Date();
+  const midnight = new Date();
+  midnight.setHours(24, 0, 0, 0);
+  return Math.ceil((midnight.getTime() - now.getTime()) / 60000);
+}
+
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60000);
@@ -22,34 +55,45 @@ function timeAgo(iso: string): string {
 export function ExamFeedbackPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { token, username } = useAuth();
+  const { token, username, isAdmin } = useAuth();
   const { lang } = useLanguage();
   const t = useT();
 
   const attemptId = Number(id);
 
-  // Manual fetch states — we don't auto-fetch so we can show a prominent CTA first,
-  // and cache the result once loaded to avoid re-fetching on language switch.
   const [feedback, setFeedback] = useState<ExamFeedback | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fetched, setFetched] = useState(false);
+  const [rateLimited, setRateLimited] = useState(false);
 
-  // Cache per lang to avoid re-fetching the same language twice
   const cache = useRef<Map<string, ExamFeedback>>(new Map());
 
   async function loadFeedback(force = false) {
-    if (!token) return;
+    if (!token || !username) return;
     const cacheKey = `${attemptId}-${lang}`;
+
+    // Serve from in-memory cache — does not count against rate limit
     if (!force && cache.current.has(cacheKey)) {
       setFeedback(cache.current.get(cacheKey)!);
       setFetched(true);
       return;
     }
+
+    // Rate limit check for non-admins
+    if (!isAdmin) {
+      const used = getTodayRequests(username).length;
+      if (used >= DAILY_LIMIT) {
+        setRateLimited(true);
+        return;
+      }
+    }
+
     setLoading(true);
     setError(null);
     try {
       const result = await getExamFeedback(attemptId, lang === 'en' ? 'ru' : lang, force);
+      if (!isAdmin) recordRequest(username);
       cache.current.set(cacheKey, result);
       setFeedback(result);
       setFetched(true);
@@ -92,8 +136,25 @@ export function ExamFeedbackPage() {
         </div>
       </div>
 
+      {/* Rate limit state */}
+      {rateLimited && (
+        <div className="feedback-error">
+          <span className="feedback-error-icon"></span>
+          <p className="feedback-error-text">
+            {lang === 'ru' && `Вы достигли лимита (${DAILY_LIMIT} запроса в день).`}
+            {lang === 'ky' && `Сиз күнүмдүк лимитке жеттиңиз (${DAILY_LIMIT} суроо).`}
+            {lang === 'en' && `Daily limit reached (${DAILY_LIMIT} requests per day).`}
+          </p>
+          <p className="feedback-error-detail">
+            {lang === 'ru' && `Сбросится через ${minutesUntilMidnight()} мин.`}
+            {lang === 'ky' && `${minutesUntilMidnight()} мин. ичинде жаңыланат.`}
+            {lang === 'en' && `Resets in ${minutesUntilMidnight()} min.`}
+          </p>
+        </div>
+      )}
+
       {/* Initial CTA — before any fetch */}
-      {!fetched && !loading && !error && (
+      {!fetched && !loading && !error && !rateLimited && (
         <div className="feedback-cta">
           <div className="feedback-cta-illustration" aria-hidden="true"></div>
           <p className="feedback-cta-desc">

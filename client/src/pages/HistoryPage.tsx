@@ -19,10 +19,12 @@ function groupBySubject(attempts: ExamAttemptHistory[]): Map<string, ExamAttempt
   return map;
 }
 
-/** Blue gradient: light blue (low score) → deep primary blue (high score) */
+/** Red (low score) → Blue (high score) */
 function scoreToColor(pct: number): string {
-  const lightness = Math.round(70 - pct * 0.28); // 70% at 0 → 42% at 100
-  return `hsl(217, 82%, ${lightness}%)`;
+  const hue = Math.round(pct * 2.17); // 0 → 0° (red), 100 → 217° (blue)
+  const saturation = 75;
+  const lightness = Math.round(58 - pct * 0.13); // slightly darker at top
+  return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 }
 
 export function HistoryPage() {
@@ -101,6 +103,7 @@ export function HistoryPage() {
             {Array.from(grouped.entries()).map(([key, subjectAttempts]) => {
               const name = subjectAttempts[0].subjectName;
               const display = subjectAttempts.slice(-10);
+              const emptySlots = 10 - display.length;
               const best = Math.max(...subjectAttempts.map(a => a.percentage));
               const avg = Math.round(
                 subjectAttempts.reduce((s, a) => s + a.percentage, 0) / subjectAttempts.length
@@ -125,6 +128,14 @@ export function HistoryPage() {
                       <span>0</span>
                     </div>
                     <div className="vchart-bars">
+                      {/* Empty placeholder slots (oldest end) */}
+                      {Array.from({ length: emptySlots }).map((_, i) => (
+                        <div key={`empty-${i}`} className="vchart-bar-col vchart-bar-col--empty">
+                          <span className="vchart-bar-value" style={{ visibility: 'hidden' }}> </span>
+                          <div className="vchart-bar-track" />
+                          <span className="vchart-bar-label"> </span>
+                        </div>
+                      ))}
                       {display.map((a, i) => (
                         <div
                           key={a.id}
@@ -132,7 +143,7 @@ export function HistoryPage() {
                           onClick={() => navigate(`/history/${a.id}`)}
                           title={`#${i + 1} — ${a.percentage}%`}
                         >
-                          <span className="vchart-bar-value">{a.percentage}%</span>
+                          <span className="vchart-bar-value">{Math.round(a.percentage)}%</span>
                           <div className="vchart-bar-track">
                             <div
                               className="vchart-bar-fill"
@@ -142,7 +153,7 @@ export function HistoryPage() {
                               } as React.CSSProperties}
                             />
                           </div>
-                          <span className="vchart-bar-label">#{i + 1}</span>
+                          <span className="vchart-bar-label">#{emptySlots + i + 1}</span>
                         </div>
                       ))}
                     </div>

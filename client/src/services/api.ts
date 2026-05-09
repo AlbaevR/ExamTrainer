@@ -1,4 +1,4 @@
-export const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5041';
+export const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5041';
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const token = localStorage.getItem('token');
@@ -22,8 +22,8 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
     if (response.status === 401) {
       window.dispatchEvent(new Event('api:unauthorized'));
     }
-    const message = await response.text();
-    throw new Error(message || `Request failed with status ${response.status}`);
+    await response.text(); // consume body, do not expose to user
+    throw new Error('Something went wrong. Please try again.');
   }
 
   // Handle 204 No Content
@@ -53,8 +53,8 @@ async function apiFetchMultipart<T>(path: string, body: FormData): Promise<T> {
     if (response.status === 401) {
       window.dispatchEvent(new Event('api:unauthorized'));
     }
-    const message = await response.text();
-    throw new Error(message || `Request failed with status ${response.status}`);
+    await response.text(); // consume body, do not expose to user
+    throw new Error('Something went wrong. Please try again.');
   }
 
   const text = await response.text();
@@ -63,7 +63,6 @@ async function apiFetchMultipart<T>(path: string, body: FormData): Promise<T> {
 
 import type {
   Subject,
-  ExamStart,
   SubmitExamRequest,
   ExamResult,
   LoginResponse,

@@ -4,6 +4,7 @@
 		<TargetFramework>net9.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
+		<UserSecretsId>23cb4c0c-5945-4de0-9c4f-445aa9d3b549</UserSecretsId>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -25,6 +26,7 @@
 
 	<ItemGroup>
 		<Folder Include="Services\" />
+		<Folder Include="wwwroot\" />
 	</ItemGroup>
 
 </Project>
