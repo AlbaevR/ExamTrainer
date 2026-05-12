@@ -60,6 +60,8 @@ public class QuestionController : ControllerBase
 
     // POST /api/subjects/{subjectId}/questions
     [HttpPost]
+    [Authorize(Roles = "Admin")]
+
     public async Task<IActionResult> CreateQuestion(int subjectId, [FromBody] CreateQuestionDto dto)
     {
         if (dto == null)

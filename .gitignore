@@ -365,3 +365,6 @@ FodyWeavers.xsd
 # Uploaded files
 api/wwwroot/uploads/*
 !api/wwwroot/uploads/.gitkeep
+
+# Production configs    
+appsettings.Production.json
