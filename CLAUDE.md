@@ -41,8 +41,9 @@ There are no automated tests. Check changes with `dotnet build`, `npm run lint` 
 - Question updates replace the whole object: `QuestionRepository.UpdateAsync` clears and re-adds the translations and answer options.
 - Roles are `Admin` and `User`, seeded with `HasData` in `ApplicationDbContext`. `DbSeeder.SeedAdminAsync` runs at startup and creates the admin account.
 - Exams: `GET /api/exam/start/{subjectId}` picks 30 random questions and returns every language at once (`ExamStartMultilingualDto`), so the client can switch language mid-exam. `POST /api/exam/submit` works without logging in; if a token is present, the attempt is linked to that user.
-- AI feedback (`StatisticsService`): calls Groq's OpenAI-compatible chat API (`meta-llama/llama-4-scout-17b-16e-instruct`, JSON mode) with a Russian or Kyrgyz prompt, normalizes the result into `ExamFeedbackDto`, and caches it as JSON in `ExamAttempt.AiFeedback`. `force=true` regenerates it. Only `ru` and `ky` prompts exist; the client sends `ru` when the UI language is `en`.
-- After changing the model, add a migration. Migrations live in `api/Migrations/`.
+- AI feedback (`StatisticsService`): calls Groq's OpenAI-compatible chat API (model from `Groq:Model`, default `openai/gpt-oss-120b`; Groq retires models, so check https://console.groq.com/docs/deprecations when feedback breaks) with a Russian or Kyrgyz prompt, normalizes the result into `ExamFeedbackDto`, and caches it as JSON in `ExamAttempt.AiFeedback`. `force=true` regenerates it. Only `ru` and `ky` prompts exist; the client sends `ru` when the UI language is `en`.
+- After changing the model, add a migration (`api/Migrations/`). The app runs `Database.MigrateAsync()` at startup, so publishing applies pending migrations to production; the production DB isn't reachable from a local machine.
+- AI feedback daily limit: `AiFeedbackLimitService` counts rows in `AiFeedbackRequests` per user per Bishkek day (UTC+6). The limit is `AiFeedback:DailyLimit` (default 3), and admins are exempt. `ExamController.GetExamFeedback` returns 429 (`AiFeedbackDailyLimit`, `limit`, `resetsAt`) and records a request only after a successful Groq call. Cached feedback, perfect scores and failed calls don't count.
 
 ## Frontend conventions
 
@@ -77,12 +78,11 @@ Security and correctness, highest priority first:
 
 1. **Seeded admin credentials are hardcoded** in `api/Data/Seed/DbSeeder.cs` and committed. Move them to configuration and change that password. Old commits also contain `appsettings.Production.json` with real secrets (removed in `3b032f1`, but still in history), so rotate the JWT signing key, the Groq key and the DB password.
 2. **Correct answers leak to the client.** `ExamStartDto` and the public `GET /api/subjects/{id}/questions` both include `IsCorrect`. Remove it from student-facing DTOs; correctness should only be visible to admins and after submission (`ExamAttemptDetailDto`).
-3. **The AI feedback rate limit is client-side only**: `DAILY_LIMIT` in `ExamFeedbackPage.tsx` is stored in `localStorage`, so anyone can bypass it, and `force=true` calls Groq every time. Enforce it on the server (ASP.NET rate limiter or a per-user counter in the DB).
-4. `SubmitExam` does not check that the questions belong to `request.SubjectId` and trusts the client-supplied `SubjectId` and `TotalQuestions`. It also loads each question separately (N+1 queries).
-5. `FileUploadService.DeleteFileAsync` builds a path from a user-supplied URL without restricting it to `wwwroot/uploads` (path traversal; mitigated only by the Admin-only route). Image validation checks the file extension only.
-6. `ExamController.GetExamFeedback` returns raw exception messages, including Groq error bodies, to the client. `AccountController.Register` returns the whole exception object with a 500. `StatisticsService` writes full Groq responses with `Console.WriteLine`.
-7. `QuestionController.GetQuestions` has a duplicated `[HttpGet]` attribute and no upper bound on `pageSize`. `StartExam` loads every question of the subject into memory before shuffling.
-8. `TokenService` uses `DateTime.Now` (should be `UtcNow`). `Login` compares `Email == input.ToLower()` rather than using the normalized email.
+3. `SubmitExam` does not check that the questions belong to `request.SubjectId` and trusts the client-supplied `SubjectId` and `TotalQuestions`. It also loads each question separately (N+1 queries).
+4. `FileUploadService.DeleteFileAsync` builds a path from a user-supplied URL without restricting it to `wwwroot/uploads` (path traversal; mitigated only by the Admin-only route). Image validation checks the file extension only.
+5. `ExamController.GetExamFeedback` returns raw exception messages, including Groq error bodies, to the client. `AccountController.Register` returns the whole exception object with a 500. `StatisticsService` writes full Groq responses with `Console.WriteLine`.
+6. `QuestionController.GetQuestions` has a duplicated `[HttpGet]` attribute and no upper bound on `pageSize`. `StartExam` loads every question of the subject into memory before shuffling.
+7. `TokenService` uses `DateTime.Now` (should be `UtcNow`). `Login` compares `Email == input.ToLower()` rather than using the normalized email.
 
 Features and infrastructure:
 
