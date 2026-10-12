@@ -1,2 +1,14 @@
 /* RegisterPage shares the same styles as LoginPage.css */
 /* This file intentionally imports nothing — LoginPage.css defines .login-page and .login-card */
+
+.form-hint {
+  display: block;
+  margin-top: var(--space-1);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  transition: color var(--transition-base);
+}
+
+.form-hint--invalid {
+  color: var(--color-danger);
+}

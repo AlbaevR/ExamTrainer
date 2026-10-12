@@ -53,6 +53,13 @@ export interface I18nStrings {
   email: string;
   registerBtn: string;
   registering: string;
+  passwordHint: string;
+  errPasswordTooShort: string;
+  errDuplicateEmail: string;
+  errDuplicateUserName: string;
+  errInvalidUserName: string;
+  errInvalidEmail: string;
+  errRegisterFailed: string;
   alreadyHaveAccount: string;
 
   // Admin / General
@@ -135,6 +142,13 @@ const strings: Record<LanguageCode, I18nStrings> = {
     email: 'Email',
     registerBtn: 'Регистрация',
     registering: 'Регистрация…',
+    passwordHint: 'Минимум 6 символов',
+    errPasswordTooShort: 'Пароль слишком короткий — нужно минимум 6 символов.',
+    errDuplicateEmail: 'Аккаунт с таким email уже существует.',
+    errDuplicateUserName: 'Это имя пользователя уже занято.',
+    errInvalidUserName: 'Имя пользователя может содержать только латинские буквы, цифры и символы - . _ @ +',
+    errInvalidEmail: 'Некорректный email.',
+    errRegisterFailed: 'Не удалось зарегистрироваться. Попробуйте ещё раз.',
     alreadyHaveAccount: 'Уже есть аккаунт?',
     save: 'Сохранить',
     cancel: 'Отмена',
@@ -208,6 +222,13 @@ const strings: Record<LanguageCode, I18nStrings> = {
     email: 'Email',
     registerBtn: 'Каттоо',
     registering: 'Каттоодо…',
+    passwordHint: 'Кеминде 6 белги',
+    errPasswordTooShort: 'Сыр сөз өтө кыска — кеминде 6 белги болушу керек.',
+    errDuplicateEmail: 'Бул email менен аккаунт мурунтан эле бар.',
+    errDuplicateUserName: 'Бул колдонуучу аты бош эмес.',
+    errInvalidUserName: 'Колдонуучу атында латын тамгалары, сандар жана - . _ @ + белгилери гана болушу мүмкүн.',
+    errInvalidEmail: 'Email туура эмес.',
+    errRegisterFailed: 'Катталуу ишке ашкан жок. Кайра аракет кылыңыз.',
     alreadyHaveAccount: 'Аккаунтуңуз барбы?',
     save: 'Сактоо',
     cancel: 'Жокко чыгаруу',
@@ -281,6 +302,13 @@ const strings: Record<LanguageCode, I18nStrings> = {
     email: 'Email',
     registerBtn: 'Register',
     registering: 'Registering…',
+    passwordHint: 'At least 6 characters',
+    errPasswordTooShort: 'Password is too short — it must be at least 6 characters.',
+    errDuplicateEmail: 'An account with this email already exists.',
+    errDuplicateUserName: 'This username is already taken.',
+    errInvalidUserName: 'Username can only contain Latin letters, digits and - . _ @ +',
+    errInvalidEmail: 'Invalid email address.',
+    errRegisterFailed: 'Registration failed. Please try again.',
     alreadyHaveAccount: 'Already have an account?',
     save: 'Save',
     cancel: 'Cancel',

@@ -1,5 +1,36 @@
 export const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5041';
 
+const GENERIC_ERROR = 'Something went wrong. Please try again.';
+
+// Keeps the generic message for display, but exposes status and machine-readable
+// error codes (e.g. Identity's "PasswordTooShort") so pages can show specific messages.
+export class ApiError extends Error {
+  status: number;
+  codes: string[];
+
+  constructor(status: number, codes: string[]) {
+    super(GENERIC_ERROR);
+    this.status = status;
+    this.codes = codes;
+  }
+}
+
+async function toApiError(response: Response): Promise<ApiError> {
+  if (response.status === 401) {
+    window.dispatchEvent(new Event('api:unauthorized'));
+  }
+  let codes: string[] = [];
+  try {
+    const body = JSON.parse(await response.text());
+    if (Array.isArray(body?.errors)) {
+      codes = body.errors.filter((c: unknown): c is string => typeof c === 'string');
+    }
+  } catch {
+    // non-JSON body: keep only the status
+  }
+  return new ApiError(response.status, codes);
+}
+
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const token = localStorage.getItem('token');
   const headers: HeadersInit = {
@@ -19,11 +50,7 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   });
 
   if (!response.ok) {
-    if (response.status === 401) {
-      window.dispatchEvent(new Event('api:unauthorized'));
-    }
-    await response.text(); // consume body, do not expose to user
-    throw new Error('Something went wrong. Please try again.');
+    throw await toApiError(response);
   }
 
   // Handle 204 No Content
@@ -50,11 +77,7 @@ async function apiFetchMultipart<T>(path: string, body: FormData): Promise<T> {
   });
 
   if (!response.ok) {
-    if (response.status === 401) {
-      window.dispatchEvent(new Event('api:unauthorized'));
-    }
-    await response.text(); // consume body, do not expose to user
-    throw new Error('Something went wrong. Please try again.');
+    throw await toApiError(response);
   }
 
   const text = await response.text();

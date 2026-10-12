@@ -77,18 +77,19 @@ namespace api.Controllers
                     }
                     else
                     {
-                        return StatusCode(500, roleResult.Errors);
+                        return StatusCode(500, new { errors = roleResult.Errors.Select(e => e.Code) });
                     }
                 }
                 else
                 {
-                    return StatusCode(500, createdUser.Errors);
+                    // Validation failures (PasswordTooShort, DuplicateEmail, ...) are the client's fault:
+                    // return 400 with Identity error codes so the UI can show a localized message.
+                    return BadRequest(new { errors = createdUser.Errors.Select(e => e.Code) });
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
-
-                return StatusCode(500, e);
+                return StatusCode(500, new { errors = new[] { "RegistrationFailed" } });
             }
         }
     }
