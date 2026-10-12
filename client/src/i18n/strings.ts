@@ -56,7 +56,6 @@ export interface I18nStrings {
   passwordHint: string;
   errPasswordTooShort: string;
   errDuplicateEmail: string;
-  errDuplicateUserName: string;
   errInvalidUserName: string;
   errInvalidEmail: string;
   errRegisterFailed: string;
@@ -145,8 +144,7 @@ const strings: Record<LanguageCode, I18nStrings> = {
     passwordHint: 'Минимум 6 символов',
     errPasswordTooShort: 'Пароль слишком короткий — нужно минимум 6 символов.',
     errDuplicateEmail: 'Аккаунт с таким email уже существует.',
-    errDuplicateUserName: 'Это имя пользователя уже занято.',
-    errInvalidUserName: 'Имя пользователя может содержать только латинские буквы, цифры и символы - . _ @ +',
+    errInvalidUserName: 'Введите имя пользователя.',
     errInvalidEmail: 'Некорректный email.',
     errRegisterFailed: 'Не удалось зарегистрироваться. Попробуйте ещё раз.',
     alreadyHaveAccount: 'Уже есть аккаунт?',
@@ -225,8 +223,7 @@ const strings: Record<LanguageCode, I18nStrings> = {
     passwordHint: 'Кеминде 6 белги',
     errPasswordTooShort: 'Сыр сөз өтө кыска — кеминде 6 белги болушу керек.',
     errDuplicateEmail: 'Бул email менен аккаунт мурунтан эле бар.',
-    errDuplicateUserName: 'Бул колдонуучу аты бош эмес.',
-    errInvalidUserName: 'Колдонуучу атында латын тамгалары, сандар жана - . _ @ + белгилери гана болушу мүмкүн.',
+    errInvalidUserName: 'Колдонуучу атын киргизиңиз.',
     errInvalidEmail: 'Email туура эмес.',
     errRegisterFailed: 'Катталуу ишке ашкан жок. Кайра аракет кылыңыз.',
     alreadyHaveAccount: 'Аккаунтуңуз барбы?',
@@ -305,8 +302,7 @@ const strings: Record<LanguageCode, I18nStrings> = {
     passwordHint: 'At least 6 characters',
     errPasswordTooShort: 'Password is too short — it must be at least 6 characters.',
     errDuplicateEmail: 'An account with this email already exists.',
-    errDuplicateUserName: 'This username is already taken.',
-    errInvalidUserName: 'Username can only contain Latin letters, digits and - . _ @ +',
+    errInvalidUserName: 'Please enter a username.',
     errInvalidEmail: 'Invalid email address.',
     errRegisterFailed: 'Registration failed. Please try again.',
     alreadyHaveAccount: 'Already have an account?',

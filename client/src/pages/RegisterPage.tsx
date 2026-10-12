@@ -47,7 +47,6 @@ export function RegisterPage() {
     const messages: Record<string, string> = {
       PasswordTooShort: t.errPasswordTooShort,
       DuplicateEmail: t.errDuplicateEmail,
-      DuplicateUserName: t.errDuplicateUserName,
       InvalidUserName: t.errInvalidUserName,
       InvalidEmail: t.errInvalidEmail,
       Email: t.errInvalidEmail,

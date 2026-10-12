@@ -8,6 +8,7 @@ using api.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
@@ -64,8 +65,14 @@ builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
     options.Password.RequireLowercase = false;
     // Login looks users up by email, so emails must be unique.
     options.User.RequireUniqueEmail = true;
+    // Empty = any characters, so Cyrillic/Kyrgyz usernames are allowed
+    options.User.AllowedUserNameCharacters = string.Empty;
 })
 .AddEntityFrameworkStores<ApplicationDbContext>();
+
+// Replace the default validator so duplicate usernames are allowed
+builder.Services.RemoveAll<IUserValidator<AppUser>>();
+builder.Services.AddScoped<IUserValidator<AppUser>, NonUniqueUserNameValidator>();
 
 builder.Services.AddAuthentication(options =>
 {
@@ -130,6 +137,8 @@ app.MapFallbackToFile("index.html");
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
+    // Apply pending migrations on startup: the production DB is only reachable from the host
+    await services.GetRequiredService<ApplicationDbContext>().Database.MigrateAsync();
     await DbSeeder.SeedAdminAsync(services);
 }
 

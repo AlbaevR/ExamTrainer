@@ -27,6 +27,12 @@ public class ApplicationDbContext : IdentityDbContext<AppUser>
     {
         base.OnModelCreating(modelBuilder);
 
+        // Usernames are display names and may repeat (see NonUniqueUserNameValidator)
+        modelBuilder.Entity<AppUser>()
+            .HasIndex(u => u.NormalizedUserName)
+            .HasDatabaseName("UserNameIndex")
+            .IsUnique(false);
+
         modelBuilder.Entity<SubjectTranslation>()
             .HasOne(st => st.Subject)
             .WithMany(s => s.Translations)
