@@ -142,6 +142,9 @@ export interface ExamFeedback {
   attemptId: number;
   feedback: FeedbackData;
   generatedAt: string;
+  // AI generations left today; null when nothing was generated or the user is an admin
+  remainingToday: number | null;
+  dailyLimit: number;
 }
 
 export interface PagedResult<T> {

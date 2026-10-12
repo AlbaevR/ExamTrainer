@@ -87,6 +87,9 @@ export interface I18nStrings {
   generatedAt: string;
   viewAiFeedback: string;
   aiFeedbackError: string;
+  aiLimitReached: string;
+  aiLimitResets: string;
+  aiRemainingToday: string;
   aiFeedbackLoading: string;
   congrats: string;
   accessDenied: string;
@@ -169,6 +172,9 @@ const strings: Record<LanguageCode, I18nStrings> = {
     generatedAt: 'Сгенерировано',
     viewAiFeedback: 'AI-анализ',
     aiFeedbackError: 'Не удалось загрузить анализ. Попробуйте снова.',
+    aiLimitReached: 'Вы достигли дневного лимита AI-анализа ({0} в день).',
+    aiLimitResets: 'Лимит обновится через {0} ч {1} мин. Уже готовые анализы можно открывать без ограничений.',
+    aiRemainingToday: 'Осталось AI-анализов сегодня: {0} из {1}',
     aiFeedbackLoading: 'Генерация AI-анализа… Это может занять до 10 секунд.',
     congrats: 'Отличная работа! Вы ответили правильно на все вопросы.',
     accessDenied: 'Доступ запрещён.',
@@ -248,6 +254,9 @@ const strings: Record<LanguageCode, I18nStrings> = {
     generatedAt: 'Түзүлгөн',
     viewAiFeedback: 'AI-анализ',
     aiFeedbackError: 'Анализди жүктөөгө болбоду. Кайра аракет кылыңыз.',
+    aiLimitReached: 'AI-анализдин күнүмдүк лимитине жеттиңиз (күнүнө {0}).',
+    aiLimitResets: 'Лимит {0} саат {1} мүнөттөн кийин жаңыланат. Даяр анализдерди чектөөсүз ача аласыз.',
+    aiRemainingToday: 'Бүгүн калган AI-анализдер: {0} / {1}',
     aiFeedbackLoading: 'AI анализи жаратылууда… Бул 10 секундга чейин созулушу мүмкүн.',
     congrats: 'Мыкты иш! Бардык суроолорго туура жооп бердиңиз.',
     accessDenied: 'Кирүүгө тыюу салынган.',
@@ -327,6 +336,9 @@ const strings: Record<LanguageCode, I18nStrings> = {
     generatedAt: 'Generated',
     viewAiFeedback: 'AI Analysis',
     aiFeedbackError: 'Failed to load analysis. Please try again.',
+    aiLimitReached: 'You have reached the daily AI analysis limit ({0} per day).',
+    aiLimitResets: 'The limit resets in {0} h {1} min. Analyses you already generated can still be opened.',
+    aiRemainingToday: 'AI analyses left today: {0} of {1}',
     aiFeedbackLoading: 'Generating AI analysis… This may take up to 10 seconds.',
     congrats: 'Great job! You answered all questions correctly.',
     accessDenied: 'Access denied.',

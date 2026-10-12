@@ -22,6 +22,7 @@ public class ApplicationDbContext : IdentityDbContext<AppUser>
     public DbSet<AnswerOptionTranslation> AnswerOptionTranslations { get; set; }
     public DbSet<ExamAttempt> ExamAttempts { get; set; }
     public DbSet<UserAnswer> UserAnswers { get; set; }
+    public DbSet<AiFeedbackRequest> AiFeedbackRequests { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -32,6 +33,15 @@ public class ApplicationDbContext : IdentityDbContext<AppUser>
             .HasIndex(u => u.NormalizedUserName)
             .HasDatabaseName("UserNameIndex")
             .IsUnique(false);
+
+        modelBuilder.Entity<AiFeedbackRequest>()
+            .HasOne(r => r.User)
+            .WithMany()
+            .HasForeignKey(r => r.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<AiFeedbackRequest>()
+            .HasIndex(r => new { r.UserId, r.RequestedAt });
 
         modelBuilder.Entity<SubjectTranslation>()
             .HasOne(st => st.Subject)

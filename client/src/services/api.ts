@@ -7,11 +7,13 @@ const GENERIC_ERROR = 'Something went wrong. Please try again.';
 export class ApiError extends Error {
   status: number;
   codes: string[];
+  body: unknown; // parsed JSON body, for endpoint-specific details (e.g. resetsAt on 429)
 
-  constructor(status: number, codes: string[]) {
+  constructor(status: number, codes: string[], body: unknown = null) {
     super(GENERIC_ERROR);
     this.status = status;
     this.codes = codes;
+    this.body = body;
   }
 }
 
@@ -20,18 +22,20 @@ async function toApiError(response: Response): Promise<ApiError> {
     window.dispatchEvent(new Event('api:unauthorized'));
   }
   let codes: string[] = [];
+  let body: unknown = null;
   try {
-    const body = JSON.parse(await response.text());
-    if (Array.isArray(body?.errors)) {
-      codes = body.errors.filter((c: unknown): c is string => typeof c === 'string');
-    } else if (body?.errors && typeof body.errors === 'object') {
+    body = JSON.parse(await response.text());
+    const errors = (body as { errors?: unknown } | null)?.errors;
+    if (Array.isArray(errors)) {
+      codes = errors.filter((c: unknown): c is string => typeof c === 'string');
+    } else if (errors && typeof errors === 'object') {
       // ASP.NET model validation: { errors: { Email: [...] } } -> field names as codes
-      codes = Object.keys(body.errors);
+      codes = Object.keys(errors);
     }
   } catch {
     // non-JSON body: keep only the status
   }
-  return new ApiError(response.status, codes);
+  return new ApiError(response.status, codes, body);
 }
 
 async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {

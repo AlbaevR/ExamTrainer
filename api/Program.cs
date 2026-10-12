@@ -111,6 +111,7 @@ builder.Services.AddScoped<IExamAttemptRepository, ExamAttemptRepository>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IFileUploadService, FileUploadService>();
 builder.Services.AddScoped<IStatisticsService, StatisticsService>();
+builder.Services.AddScoped<IAiFeedbackLimitService, AiFeedbackLimitService>();
 
 var app = builder.Build();
 

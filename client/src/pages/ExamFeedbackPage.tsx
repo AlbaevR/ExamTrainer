@@ -1,45 +1,22 @@
 import { useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getExamFeedback } from '../services/api';
+import { getExamFeedback, ApiError } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import { useT } from '../i18n/strings';
+import { useT, formatString } from '../i18n/strings';
 import { MistakeCard } from '../components/MistakeCard';
 import { StudyRoadmap } from '../components/StudyRoadmap';
 import type { ExamFeedback } from '../types';
 import './ExamFeedbackPage.css';
 
-const DAILY_LIMIT = 3;
-
-function rlKey(username: string) {
-  return `feedback_rl_${username}`;
+interface RateLimitInfo {
+  limit: number;
+  resetsAt: string; // UTC ISO time when the server's daily counter resets
 }
 
-function getTodayRequests(username: string): number[] {
-  try {
-    const raw = localStorage.getItem(rlKey(username));
-    const all: number[] = raw ? JSON.parse(raw) : [];
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
-    return all.filter(ts => ts >= startOfDay.getTime());
-  } catch {
-    return [];
-  }
-}
-
-function recordRequest(username: string): void {
-  try {
-    const todayTs = getTodayRequests(username);
-    todayTs.push(Date.now());
-    localStorage.setItem(rlKey(username), JSON.stringify(todayTs));
-  } catch { /* ignore */ }
-}
-
-function minutesUntilMidnight(): number {
-  const now = new Date();
-  const midnight = new Date();
-  midnight.setHours(24, 0, 0, 0);
-  return Math.ceil((midnight.getTime() - now.getTime()) / 60000);
+function timeUntil(iso: string): { hours: number; minutes: number } {
+  const totalMinutes = Math.max(0, Math.ceil((new Date(iso).getTime() - Date.now()) / 60000));
+  return { hours: Math.floor(totalMinutes / 60), minutes: totalMinutes % 60 };
 }
 
 function timeAgo(iso: string): string {
@@ -55,7 +32,7 @@ function timeAgo(iso: string): string {
 export function ExamFeedbackPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { token, username, isAdmin } = useAuth();
+  const { token, username } = useAuth();
   const { lang } = useLanguage();
   const t = useT();
 
@@ -65,7 +42,7 @@ export function ExamFeedbackPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fetched, setFetched] = useState(false);
-  const [rateLimited, setRateLimited] = useState(false);
+  const [rateLimit, setRateLimit] = useState<RateLimitInfo | null>(null);
 
   const cache = useRef<Map<string, ExamFeedback>>(new Map());
 
@@ -73,31 +50,26 @@ export function ExamFeedbackPage() {
     if (!token || !username) return;
     const cacheKey = `${attemptId}-${lang}`;
 
-    // Serve from in-memory cache — does not count against rate limit
+    // Serve from in-memory cache (the server enforces the daily AI limit)
     if (!force && cache.current.has(cacheKey)) {
       setFeedback(cache.current.get(cacheKey)!);
       setFetched(true);
       return;
     }
 
-    // Rate limit check for non-admins
-    if (!isAdmin) {
-      const used = getTodayRequests(username).length;
-      if (used >= DAILY_LIMIT) {
-        setRateLimited(true);
-        return;
-      }
-    }
-
     setLoading(true);
     setError(null);
     try {
       const result = await getExamFeedback(attemptId, lang === 'en' ? 'ru' : lang, force);
-      if (!isAdmin) recordRequest(username);
       cache.current.set(cacheKey, result);
       setFeedback(result);
       setFetched(true);
     } catch (err: unknown) {
+      if (err instanceof ApiError && err.status === 429) {
+        const body = err.body as Partial<RateLimitInfo> | null;
+        setRateLimit({ limit: body?.limit ?? 3, resetsAt: body?.resetsAt ?? new Date().toISOString() });
+        return;
+      }
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
@@ -137,24 +109,19 @@ export function ExamFeedbackPage() {
       </div>
 
       {/* Rate limit state */}
-      {rateLimited && (
-        <div className="feedback-error">
-          <span className="feedback-error-icon"></span>
-          <p className="feedback-error-text">
-            {lang === 'ru' && `Вы достигли лимита (${DAILY_LIMIT} запроса в день).`}
-            {lang === 'ky' && `Сиз күнүмдүк лимитке жеттиңиз (${DAILY_LIMIT} суроо).`}
-            {lang === 'en' && `Daily limit reached (${DAILY_LIMIT} requests per day).`}
-          </p>
-          <p className="feedback-error-detail">
-            {lang === 'ru' && `Сбросится через ${minutesUntilMidnight()} мин.`}
-            {lang === 'ky' && `${minutesUntilMidnight()} мин. ичинде жаңыланат.`}
-            {lang === 'en' && `Resets in ${minutesUntilMidnight()} min.`}
-          </p>
-        </div>
-      )}
+      {rateLimit && (() => {
+        const { hours, minutes } = timeUntil(rateLimit.resetsAt);
+        return (
+          <div className="feedback-error">
+            <span className="feedback-error-icon"></span>
+            <p className="feedback-error-text">{formatString(t.aiLimitReached, rateLimit.limit)}</p>
+            <p className="feedback-error-detail">{formatString(t.aiLimitResets, hours, minutes)}</p>
+          </div>
+        );
+      })()}
 
       {/* Initial CTA — before any fetch */}
-      {!fetched && !loading && !error && !rateLimited && (
+      {!fetched && !loading && !error && !rateLimit && (
         <div className="feedback-cta">
           <div className="feedback-cta-illustration" aria-hidden="true"></div>
           <p className="feedback-cta-desc">
@@ -241,6 +208,12 @@ export function ExamFeedbackPage() {
               ({new Date(feedback.generatedAt).toLocaleString()})
             </span>
           </p>
+
+          {feedback.remainingToday != null && (
+            <p className="feedback-generated-at">
+              {formatString(t.aiRemainingToday, feedback.remainingToday, feedback.dailyLimit)}
+            </p>
+          )}
 
           {/* Refresh button */}
           <button

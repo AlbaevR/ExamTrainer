@@ -18,17 +18,20 @@ public class ExamController : ControllerBase
     private readonly IExamAttemptRepository _examAttemptRepository;
     private readonly ISubjectRepository _subjectRepository;
     private readonly IStatisticsService _statisticsService;
+    private readonly IAiFeedbackLimitService _aiFeedbackLimit;
 
     public ExamController(
         IQuestionRepository questionRepository,
         IExamAttemptRepository examAttemptRepository,
         ISubjectRepository subjectRepository,
-        IStatisticsService statisticsService)
+        IStatisticsService statisticsService,
+        IAiFeedbackLimitService aiFeedbackLimit)
     {
         _questionRepository = questionRepository;
         _examAttemptRepository = examAttemptRepository;
         _subjectRepository = subjectRepository;
         _statisticsService = statisticsService;
+        _aiFeedbackLimit = aiFeedbackLimit;
     }
 
     // GET /api/exam/start/{subjectId}
@@ -175,10 +178,37 @@ public class ExamController : ControllerBase
         if (attempt.UserId != userId)
             return Forbid();
 
+        // Only requests that will call the AI count against the daily limit: cached feedback
+        // and perfect scores (no mistakes to analyze) are free. Mirrors the checks in
+        // StatisticsService.GenerateExamFeedbackAsync. Admins are unlimited.
+        var willCallAi = (force || string.IsNullOrEmpty(attempt.AiFeedback))
+                         && attempt.UserAnswers.Any(ua => !ua.IsCorrect);
+        var isLimited = willCallAi && !User.IsInRole("Admin");
+        int? remainingToday = null;
+
+        if (isLimited)
+        {
+            var usedToday = await _aiFeedbackLimit.CountTodayAsync(userId);
+            if (usedToday >= _aiFeedbackLimit.DailyLimit)
+            {
+                return StatusCode(StatusCodes.Status429TooManyRequests, new
+                {
+                    errors = new[] { "AiFeedbackDailyLimit" },
+                    limit = _aiFeedbackLimit.DailyLimit,
+                    resetsAt = _aiFeedbackLimit.NextResetUtc()
+                });
+            }
+            remainingToday = _aiFeedbackLimit.DailyLimit - usedToday - 1;
+        }
+
         try
         {
             var language = lang ?? "ru";
             var feedbackJson = await _statisticsService.GenerateExamFeedbackAsync(id, language, force);
+
+            // Record only after a successful generation, so failed AI calls don't use up the quota
+            if (isLimited)
+                await _aiFeedbackLimit.RecordAsync(userId);
 
             // Normalize through the DTO to guarantee camelCase keys in the response,
             // regardless of what was stored in the database.
@@ -188,7 +218,9 @@ public class ExamController : ControllerBase
             return Ok(new {
                 attemptId = id,
                 feedback = feedbackObject,
-                generatedAt = attempt.AiFeedbackGeneratedAt
+                generatedAt = attempt.AiFeedbackGeneratedAt,
+                remainingToday,
+                dailyLimit = _aiFeedbackLimit.DailyLimit
             });
         }
         catch (Exception ex)

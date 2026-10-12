@@ -304,6 +304,28 @@ namespace api.Migrations
                     b.ToTable("SubjectTranslations");
                 });
 
+            modelBuilder.Entity("api.Models.AiFeedbackRequest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("RequestedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "RequestedAt");
+
+                    b.ToTable("AiFeedbackRequests");
+                });
+
             modelBuilder.Entity("api.Models.AppUser", b =>
                 {
                     b.Property<string>("Id")
@@ -543,6 +565,17 @@ namespace api.Migrations
                         .IsRequired();
 
                     b.Navigation("Subject");
+                });
+
+            modelBuilder.Entity("api.Models.AiFeedbackRequest", b =>
+                {
+                    b.HasOne("api.Models.AppUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("api.Models.ExamAttempt", b =>
