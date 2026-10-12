@@ -24,6 +24,9 @@ async function toApiError(response: Response): Promise<ApiError> {
     const body = JSON.parse(await response.text());
     if (Array.isArray(body?.errors)) {
       codes = body.errors.filter((c: unknown): c is string => typeof c === 'string');
+    } else if (body?.errors && typeof body.errors === 'object') {
+      // ASP.NET model validation: { errors: { Email: [...] } } -> field names as codes
+      codes = Object.keys(body.errors);
     }
   } catch {
     // non-JSON body: keep only the status
