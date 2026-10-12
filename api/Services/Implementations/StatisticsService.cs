@@ -176,9 +176,15 @@ namespace api.Services.Implementations
         {
             var httpClient = _httpClientFactory.CreateClient();
 
+            // Groq retires models regularly (llama-4-scout was shut down 2026-07-17),
+            // so the model is configurable via "Groq:Model".
+            var model = _configuration["Groq:Model"];
+            if (string.IsNullOrWhiteSpace(model))
+                model = "openai/gpt-oss-120b";
+
             var requestBody = new
             {
-                model = "meta-llama/llama-4-scout-17b-16e-instruct",
+                model,
                 messages = new[]
                 {
                     new { role = "user", content = prompt }
